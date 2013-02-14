@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans
+        xmlns="http://www.griddynamics.com/schema/jagger"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation=
+                "
+        http://www.griddynamics.com/schema/jagger
+        http://www.griddynamics.com/schema/jagger.xsd
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd"
+        >
+
+    <configuration id="testTargetConfigurationCustom" monitoringEnable="false">
+        <test-plan>
+            <test ref="navigation-service-parallel-milestone-IA-updates-tests-hessian"/>
+        </test-plan>
+    </configuration>
+
+    <test id="navigation-service-parallel-milestone-IA-updates-tests-hessian">
+        <task id="navigation-service-getProducts-hessian" sample="1" delay="0"
+              workload="getProductsNavigationService1">
+            <user count="1" startCount="1" startIn="0" startBy="0" life="2h"/>
+        </task>
+    </test>
+
+    <workload id="getProductsNavigationServiceTestTargetAbstractWorkload1">
+
+        <listeners>
+            <validator xsi:type="notNullResponse"/>
+	        <validator xsi:type="consistency" />
+        </listeners>
+
+        <scenario xsi:type="scenarioRef" ref="getProductsNavigationServiceScenario1"/>
+
+    </workload>
+
+    <workload id="getProductsNavigationService1"
+			name="navigation-service-getProducts-hessian"
+			version="1"
+			parent="getProductsNavigationServiceTestTargetAbstractWorkload1"
+			calibration="true">
+	    <scenario xsi:type="scenarioRef" ref="getProductsNavigationServiceScenario1"/>
+    </workload>
+
+    <scenario id="getProductsNavigationServiceScenario1" xsi:type="queryPoolScenario">
+        <loadBalancer xsi:type="roundRobinLoadBalancer"/>
+
+        <invoker xsi:type="invokerClass" class="com.macys.platform.providers.navigation.test.performance.invoker.GetProductsNavigationServiceInvoker"/>
+
+	    <endpointProvider xsi:type="endpointProviderRef" ref="navigationServiceEndpoints1"/>
+
+        <queryProvider xsi:type="queryProviderRef" ref="queriesList" />
+    </scenario>
+
+<beans:bean id="queriesList" class="java.util.ArrayList">
+	<beans:constructor-arg value="#{searchProductsWithRefinementsNavigationServiceQueryProvider.queries()}"/>
+</beans:bean>
+
+<beans:bean id="navigationServiceEndpoints1" class="org.springframework.beans.factory.config.ListFactoryBean">
+    <beans:property name="sourceList"
+              value="#{servicesEndpointConfigurator.getEndpoints('/sdp/services/NavigationService/v1')}"/>
+</beans:bean>
+
+</beans:beans>

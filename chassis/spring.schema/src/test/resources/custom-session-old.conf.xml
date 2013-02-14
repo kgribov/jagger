@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans
+        xmlns="http://www.griddynamics.com/schema/jagger"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation=
+                "
+        http://www.griddynamics.com/schema/jagger
+        http://www.griddynamics.com/schema/jagger.xsd
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd"
+        >
+
+    <configuration id="testTargetOldConfiguration" monitoringEnable="false">
+        <test-plan ref="test-plan-1"/>
+
+        <percentiles>
+            <percentiles-global>
+                <percentile>70</percentile>
+            </percentiles-global>
+        </percentiles>
+
+    </configuration>
+
+    <test-plan id="test-plan-1">
+        <test ref="test1"/>
+    </test-plan>
+
+    <test id="test1" duration="200">
+        <task id="t3" sample="1000" delay="0" workload="w1">
+            <user id="u2" count="1" startCount="1" startIn="0" startBy="0" life="2h"/>
+            <user id="u3" count="1" startCount="1" startIn="0" startBy="0" life="2h"/>
+            <user id="u4" count="1" startCount="1" startIn="0" startBy="0" life="2h"/>
+        </task>
+        <task id="t4" sample="1" delay="0" workload="w1">
+            <virtual-user ref="vu1"/>
+        </task>
+    </test>
+
+    <test id="test2" duration="200">
+        <task id="t5" sample="1000" delay="0" workload="w1">
+            <tps id="tps1" value="10"/>
+        </task>
+    </test>
+
+    <virtual-user id="vu1" count="1" tickInterval="10"/>
+
+    <!--workload-->
+
+    <metric id="metric1" xsi:type="simpleMetric"/>
+
+    <endpointProvider id="endpointProvider1" xsi:type="simpleEndpointProvider">
+        <endpoint>http://localhost:8090/sleep/5</endpoint>
+        <endpoint>http://localhost:8090/sleep/25</endpoint>
+        <endpoint>http://localhost:8090/sleep/50</endpoint>
+    </endpointProvider>
+
+    <query id="httpQ1" xsi:type="httpQuery" method="GET">
+        <clientParams>
+            <param key="http.protocol.allow-circular-redirects">
+                <value xsi:type="boolean" >true</value>
+            </param>
+            <param key="http.protocol.max-redirects">
+                <value xsi:type="integer">2</value>
+            </param>
+            <param key="http.connection-manager.timeout">
+                <value xsi:type="long">5000</value>
+            </param>
+            <param key="http.protocol.max-redirects">
+                <value xsi:type="integer">0</value>
+            </param>
+        </clientParams>
+    </query>
+
+    <queryProvider id="qProvider1" xsi:type="simpleQueryProvider">
+        <query xsi:type="queryRef" ref="httpQ1"/>
+    </queryProvider>
+
+    <workload id="w1" calibration="true">
+
+        <listeners>
+            <validator xsi:type="notNullResponse"/>
+            <validator xsi:type="consistency"/>
+        </listeners>
+
+        <scenario xsi:type="scenarioRef" ref="sc1"/>
+    </workload>
+
+    <scenario id="sc1" xsi:type="queryPoolScenario">
+
+        <loadBalancer xsi:type="roundRobinLoadBalancer"/>
+
+        <invoker xsi:type="invokerClass" class="com.griddynamics.jagger.invoker.http.HttpInvoker"/>
+
+        <endpointProvider xsi:type="endpointProviderRef" ref="endpointProvider1"/>
+
+        <queryProvider xsi:type="queryProviderRef" ref="qProvider1" />
+    </scenario>
+
+
+</beans:beans>
