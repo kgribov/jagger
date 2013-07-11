@@ -1,4 +1,4 @@
-/*
+package com.griddynamics.jagger.engine.e1.process;/*
  * Copyright (c) 2010-2012 Grid Dynamics Consulting Services, Inc, All Rights Reserved
  * http://www.griddynamics.com
  *
@@ -18,31 +18,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.griddynamics.jagger.agent.model;
-
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
 
 /**
- * User: vshulga
- * Date: 7/5/11
- * Time: 12:21 PM
+ * @author Nikolay Musienko
+ *         Date: 26.06.13
  */
-public interface SystemInfoCollector {
+public class WorkloadStatus implements Serializable {
+    private final int startedSamples;
+    private final int finishedSamples;
 
-    List<String> getCPUInfo();
+    public WorkloadStatus(int startedSamples, int finishedSamples) {
+        this.startedSamples = startedSamples;
+        this.finishedSamples = finishedSamples;
+    }
 
-    Map<String, String> getCPULoadInfo();
+    public int getStartedSamples() {
+        return startedSamples;
+    }
 
-    Map<String, String> getMemInfo();
+    public int getFinishedSamples() {
+        return finishedSamples;
+    }
 
-    Map<String, String> getNetworkInfo();
-
-    TcpData getTcpData();
-
-    CpuData getCpuData();
-
-    DisksData getDisksData();
-
-    double[] getLoadAverage();
+    @Override
+    public String toString() {
+        return "WorkloadStatus{" +
+                "startedSamples=" + startedSamples +
+                ", finishedSamples=" + finishedSamples +
+                '}';
+    }
 }

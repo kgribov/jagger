@@ -18,31 +18,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.griddynamics.jagger.agent.model;
+package com.griddynamics.jagger.engine.e1.scenario;
 
-import java.util.List;
-import java.util.Map;
+import com.griddynamics.jagger.coordinator.NodeId;
+import com.griddynamics.jagger.util.SystemClock;
 
 /**
- * User: vshulga
- * Date: 7/5/11
- * Time: 12:21 PM
+ * @author Nikolay Musienko
+ *         Date: 26.06.13
  */
-public interface SystemInfoCollector {
 
-    List<String> getCPUInfo();
+public class RpsClock extends AbstractRateClock {
 
-    Map<String, String> getCPULoadInfo();
+    public RpsClock(int tickInterval, TpsRouter tpsRouter, WorkloadSuggestionMaker workloadSuggestionMaker, SystemClock systemClock, int maxThreads) {
+        super(tickInterval, tpsRouter, workloadSuggestionMaker, systemClock, maxThreads);
+    }
 
-    Map<String, String> getMemInfo();
+    @Override
+    protected Integer getSamples(WorkloadExecutionStatus status, NodeId node) {
+        return status.getStartedSamples(node);
+    }
 
-    Map<String, String> getNetworkInfo();
+    @Override
+    public String toString() {
+        return getValue() + " rps";
+    }
 
-    TcpData getTcpData();
-
-    CpuData getCpuData();
-
-    DisksData getDisksData();
-
-    double[] getLoadAverage();
 }

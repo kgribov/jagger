@@ -44,7 +44,8 @@ import static com.griddynamics.jagger.util.Units.bytesToMiB;
  */
 public class MonitoringInfoServiceImpl implements MonitoringInfoService {
     private static final Logger log = LoggerFactory.getLogger(MonitoringInfoServiceImpl.class);
-    private static final int JMX_TIMEOUT = 300;
+
+    private int jmxTimeout = 300;
 
     private SystemInfoCollector systemInfoService;
     private SystemUnderTestService systemUnderTestService;
@@ -59,6 +60,10 @@ public class MonitoringInfoServiceImpl implements MonitoringInfoService {
         this.systemUnderTestService = systemUnderTestService;
     }
 
+    public void setJmxTimeout(int jmxTimeout) {
+        this.jmxTimeout = jmxTimeout;
+    }
+
     @Override
     public SystemInfo getSystemInfo() {
         long startTime = System.currentTimeMillis(), startTimeLog = startTime;
@@ -66,6 +71,10 @@ public class MonitoringInfoServiceImpl implements MonitoringInfoService {
         log.debug("start collecting box info through sigar on agent");
         Map<MonitoringParameter, Double> sysInfoStringMap = Maps.newHashMap();
         Map<String, String> memInfo = this.systemInfoService.getMemInfo();
+        DisksData disksData = systemInfoService.getDisksData();
+        CpuData cpuData = systemInfoService.getCpuData();
+        TcpData tcpData = systemInfoService.getTcpData();
+
         sysInfoStringMap.put(DefaultMonitoringParameters.MEM_RAM, Double.parseDouble(memInfo.get("Ram")));
         sysInfoStringMap.put(DefaultMonitoringParameters.MEM_TOTAL, bytesToMiB(memInfo.get("Total")));
         sysInfoStringMap.put(DefaultMonitoringParameters.MEM_USED, bytesToMiB(memInfo.get("Used")));
@@ -74,19 +83,22 @@ public class MonitoringInfoServiceImpl implements MonitoringInfoService {
         sysInfoStringMap.put(DefaultMonitoringParameters.MEM_FREE, bytesToMiB(memInfo.get("Free")));
         sysInfoStringMap.put(DefaultMonitoringParameters.MEM_FREE_PERCENT, Double.valueOf(memInfo.get("FreePercent")));
 
-        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_ESTABLISHED, (double) systemInfoService.getTcpEstablished());
-        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_LISTEN, (double) systemInfoService.getTcpListen());
-        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_SYNCHRONIZED_RECEIVED, (double) systemInfoService.getTcpSynchronizedReceived());
-        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_INBOUND_TOTAL, bytesToKiB(systemInfoService.getTCPInboundTotal()));
-        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_OUTBOUND_TOTAL, bytesToKiB(systemInfoService.getTCPOutboundTotal()));
+        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_ESTABLISHED, tcpData.getTcpEstablished());
+        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_LISTEN, tcpData.getTcpListen());
+        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_SYNCHRONIZED_RECEIVED, tcpData.getTcpSynchronizedReceived());
+        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_INBOUND_TOTAL, bytesToKiB(tcpData.getTcpInboundTotal()));
+        sysInfoStringMap.put(DefaultMonitoringParameters.TCP_OUTBOUND_TOTAL, bytesToKiB(tcpData.getTcpOutboundTotal()));
 
-        sysInfoStringMap.put(DefaultMonitoringParameters.DISKS_READ_BYTES_TOTAL, bytesToKiB(systemInfoService.getDisksReadBytesTotal()));
-        sysInfoStringMap.put(DefaultMonitoringParameters.DISKS_WRITE_BYTES_TOTAL, bytesToKiB(systemInfoService.getDisksWriteBytesTotal()));
+        sysInfoStringMap.put(DefaultMonitoringParameters.DISKS_READ_BYTES_TOTAL, bytesToKiB(disksData.getDisksReadBytesTotal()));
+        sysInfoStringMap.put(DefaultMonitoringParameters.DISKS_WRITE_BYTES_TOTAL, bytesToKiB(disksData.getDisksWriteBytesTotal()));
+        sysInfoStringMap.put(DefaultMonitoringParameters.DISKS_AVERAGE_QUEUE_SIZE_TOTAL, disksData.getDisksQueueTotal());
+        sysInfoStringMap.put(DefaultMonitoringParameters.DISKS_SERVICE_TIME_TOTAL, disksData.getDisksSvcTimeTotal());
 
-        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_USER_PERC, systemInfoService.getCPUStateUser() * 100);
-        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_SYSTEM_PERC, systemInfoService.getCPUStateSys() * 100);
-        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_IDLE_PERC, systemInfoService.getCPUStateIdle() * 100);
-        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_IDLE_WAIT, systemInfoService.getCPUStateWait() * 100);
+        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_USER_PERC, cpuData.getCpuStateUser() * 100);
+        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_SYSTEM_PERC, cpuData.getCpuStateSys() * 100);
+        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_IDLE_PERC, cpuData.getCpuStateIdle() * 100);
+        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_IDLE_WAIT, cpuData.getCpuStateWait() * 100);
+        sysInfoStringMap.put(DefaultMonitoringParameters.CPU_STATE_COMBINED, cpuData.getCpuStateCombined() * 100);
 
         log.debug("finish collecting box info through sigar on agent: time {} ms", System.currentTimeMillis() - startTimeLog);
         startTimeLog = System.currentTimeMillis();
@@ -111,14 +123,14 @@ public class MonitoringInfoServiceImpl implements MonitoringInfoService {
             });
             Map<String, SystemUnderTestInfo> jmxInfo;
             try {
-                jmxInfo = Futures.makeUninterruptible(future).get(JMX_TIMEOUT, TimeUnit.MILLISECONDS);
+                jmxInfo = Futures.makeUninterruptible(future).get(jmxTimeout, TimeUnit.MILLISECONDS);
                 systemInfo.setSysUnderTest(jmxInfo);
             } catch (ExecutionException e) {
                 log.error("Execution failed {}", e);
                 throw Throwables.propagate(e);
             } catch (TimeoutException e) {
-                log.warn("Time is left for collecting through JMX, make pause {} ms and pass out without jmxInfo", JMX_TIMEOUT);
-                TimeUtils.sleepMillis(JMX_TIMEOUT);
+                log.warn("Time is left for collecting through JMX, make pause {} ms and pass out without jmxInfo", jmxTimeout);
+                TimeUtils.sleepMillis(jmxTimeout);
             }
         } else {
             log.warn("jmxThread is busy. pass out");

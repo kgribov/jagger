@@ -17,32 +17,27 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.griddynamics.jagger.engine.e1.scenario;
 
-package com.griddynamics.jagger.agent.model;
-
-import java.util.List;
-import java.util.Map;
+import com.griddynamics.jagger.util.SystemClock;
 
 /**
- * User: vshulga
- * Date: 7/5/11
- * Time: 12:21 PM
+ * @author Nikolay Musienko
+ *         Date: 28.06.13
  */
-public interface SystemInfoCollector {
 
-    List<String> getCPUInfo();
+public class RpsClockConfiguration extends AbstractRateClockConfiguration {
 
-    Map<String, String> getCPULoadInfo();
+    @Override
+    protected WorkloadClock getRateClock(int tickInterval, TpsRouter tpsRouter, WorkloadSuggestionMaker workloadSuggestionMaker, SystemClock systemClock, int maxThreadNumber) {
+        return new RpsClock(tickInterval, tpsRouter, workloadSuggestionMaker, systemClock, maxThreadNumber);
+    }
 
-    Map<String, String> getMemInfo();
-
-    Map<String, String> getNetworkInfo();
-
-    TcpData getTcpData();
-
-    CpuData getCpuData();
-
-    DisksData getDisksData();
-
-    double[] getLoadAverage();
+    @Override
+    public String toString() {
+        if (isRumpUp()){
+            return getTps() + " rump-up rps";
+        }
+        return getTps() + " rps";
+    }
 }

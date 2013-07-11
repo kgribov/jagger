@@ -20,18 +20,42 @@
 
 package com.griddynamics.jagger.engine.e1.scenario;
 
+import org.bouncycastle.x509.NoSuchStoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 
-public class ConstantTps implements DesiredTps {
-    private final BigDecimal tps;
+/**
+ * @author Nikolay Musienko
+ *         Date: 01.07.13
+ */
+public class RumpUpTps  implements DesiredTps {
+    Logger log = LoggerFactory.getLogger(RumpUpTps.class);
 
-    public ConstantTps(BigDecimal tps) {
+    private final BigDecimal tps;
+    private long warmUpTime;
+    private long startTime = -1;
+    private BigDecimal k;
+
+    public RumpUpTps(BigDecimal tps, long warmUpTime) {
         this.tps = tps;
+        this.warmUpTime = warmUpTime;
     }
 
     @Override
-    public BigDecimal get(long period) {
-        return tps;
+    public BigDecimal get(long time) {
+        if(startTime == -1) {
+            startTime = time;
+            warmUpTime += time;
+            k = tps.divide(new BigDecimal(warmUpTime - startTime));
+        }
+        if (time > warmUpTime) {
+            return tps;
+        }
+        BigDecimal currentTps = k.multiply(new BigDecimal(time - startTime));
+        log.debug("Changing rate up to: {}", currentTps);
+        return currentTps;
     }
 
     @Override
@@ -41,8 +65,11 @@ public class ConstantTps implements DesiredTps {
 
     @Override
     public String toString() {
-        return "ConstantTps{" +
-                "tps=" + tps +
+        return "RumpUpTps{" +
+                "log=" + log +
+                ", tps=" + tps +
+                ", warmUpTime=" + warmUpTime +
+                ", startTime=" + startTime +
                 '}';
     }
 }

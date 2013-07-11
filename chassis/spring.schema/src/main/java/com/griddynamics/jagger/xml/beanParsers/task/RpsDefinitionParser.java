@@ -18,31 +18,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.griddynamics.jagger.agent.model;
+package com.griddynamics.jagger.xml.beanParsers.task;
 
-import java.util.List;
-import java.util.Map;
+import  com.griddynamics.jagger.engine.e1.scenario.RpsClockConfiguration;
+import com.griddynamics.jagger.xml.beanParsers.CustomBeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.w3c.dom.Element;
+
 
 /**
- * User: vshulga
- * Date: 7/5/11
- * Time: 12:21 PM
+ * @author Nikolay Musienko
+ *         Date: 28.06.13
  */
-public interface SystemInfoCollector {
 
-    List<String> getCPUInfo();
+public class RpsDefinitionParser  extends CustomBeanDefinitionParser {
 
-    Map<String, String> getCPULoadInfo();
 
-    Map<String, String> getMemInfo();
+    @Override
+    protected Class getBeanClass(Element element) {
+        return RpsClockConfiguration.class;
+    }
 
-    Map<String, String> getNetworkInfo();
+    @Override
+    protected void preParseAttributes(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        new TpsDefinitionParser().preParseAttributes(element, parserContext, builder);
+    }
 
-    TcpData getTcpData();
+    @Override
+    protected void parse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 
-    CpuData getCpuData();
-
-    DisksData getDisksData();
-
-    double[] getLoadAverage();
+    }
 }

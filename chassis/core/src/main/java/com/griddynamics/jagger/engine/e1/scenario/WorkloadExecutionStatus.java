@@ -35,11 +35,15 @@ public interface WorkloadExecutionStatus {
 
     Integer getThreads(NodeId id);
 
+    Integer getStartedSamples(NodeId id);
+
     Integer getSamples(NodeId id);
 
     Integer getDelay(NodeId id);
 
     Long getPollTime(NodeId id);
+
+    int getTotalStartedSamples();
 
     int getTotalSamples();
 
