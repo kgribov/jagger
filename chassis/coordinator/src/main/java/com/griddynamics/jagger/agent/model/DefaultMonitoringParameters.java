@@ -23,60 +23,62 @@ import static com.griddynamics.jagger.agent.model.MonitoringParameterLevel.BOX;
 import static com.griddynamics.jagger.agent.model.MonitoringParameterLevel.SUT;
 
 public enum DefaultMonitoringParameters implements MonitoringParameter {
-    MEM_RAM("RAM, MiB", false, BOX),
-    MEM_TOTAL("Total memory, MiB", false, BOX),
-    MEM_USED("Memory used, MiB", false, BOX),
-    MEM_ACTUAL_USED("Memory actual used, MiB", false, BOX),
-    MEM_FREE_PERCENT("Memory free, %", false, BOX),
-    MEM_ACTUAL_FREE("Memory actual free, MiB", false, BOX),
-    MEM_FREE("Memory free, MiB", false, BOX),
+    MEM_RAM("RAM, MiB", false, false, BOX),
+    MEM_TOTAL("Total memory, MiB", false, false, BOX),
+    MEM_USED("Memory used, MiB", false, false, BOX),
+    MEM_ACTUAL_USED("Memory actual used, MiB", false, false, BOX),
+    MEM_FREE_PERCENT("Memory free, %", false, false, BOX),
+    MEM_ACTUAL_FREE("Memory actual free, MiB", false, false, BOX),
+    MEM_FREE("Memory free, MiB", false, false, BOX),
 
-    TCP_ESTABLISHED("Tcp established connections, count", false, BOX),
-    TCP_LISTEN("TCP listen, count", false, BOX),
-    TCP_SYNCHRONIZED_RECEIVED("TCP synchronized received, count", false, BOX),
-    TCP_INBOUND_TOTAL("TCP inbound total, KiB/sec", true, BOX),
-    TCP_OUTBOUND_TOTAL("TCP outbound total, KiB/sec", true, BOX),
+    TCP_ESTABLISHED("Tcp established connections, count", false, false, BOX),
+    TCP_LISTEN("TCP listen, count", false, false, BOX),
+    TCP_SYNCHRONIZED_RECEIVED("TCP synchronized received, count", false, false, BOX),
+    TCP_INBOUND_TOTAL("TCP inbound total, KiB/sec", true, true, BOX),
+    TCP_OUTBOUND_TOTAL("TCP outbound total, KiB/sec", true, true, BOX),
 
-    DISKS_READ_BYTES_TOTAL("Disks read bytes total, KiB/sec", true, BOX),
-    DISKS_WRITE_BYTES_TOTAL("Disks write bytes total, KiB/sec", true, BOX),
+    DISKS_READ_BYTES_TOTAL("Disks read bytes total, KiB/sec", true, true, BOX),
+    DISKS_WRITE_BYTES_TOTAL("Disks write bytes total, KiB/sec", true, true, BOX),
 
-    DISKS_SERVICE_TIME_TOTAL("Disks service time", false, BOX),
-    DISKS_AVERAGE_QUEUE_SIZE_TOTAL("Disks queue", false, BOX),
+    DISKS_SERVICE_TIME_TOTAL("Disks service time", false, false, BOX),
+    DISKS_AVERAGE_QUEUE_SIZE_TOTAL("Disks queue", false, false, BOX),
 
-    CPU_STATE_USER_PERC("CPU user, %", false, BOX),
-    CPU_STATE_SYSTEM_PERC("CPU system, %", false, BOX),
-    CPU_STATE_IDLE_PERC("CPU idle, %", false, BOX),
-    CPU_STATE_IDLE_WAIT("CPU wait, %", false, BOX),
-    CPU_STATE_COMBINED("CPU combined, %", false, BOX),
+    CPU_STATE_USER_PERC("CPU user, %", false, false, BOX),
+    CPU_STATE_SYSTEM_PERC("CPU system, %", false, false, BOX),
+    CPU_STATE_IDLE_PERC("CPU idle, %", false, false, BOX),
+    CPU_STATE_IDLE_WAIT("CPU wait, %", false, false, BOX),
+    CPU_STATE_COMBINED("CPU combined, %", false, false, BOX),
 
-    CPU_LOAD_AVERAGE_1("CPU load average for the past 1 minute, %", false, BOX),
-    CPU_LOAD_AVERAGE_5("CPU load average for the past 5 minutes, %", false, BOX),
-    CPU_LOAD_AVERAGE_15("CPU load average for the past 15 minutes, %", false, BOX),
+    CPU_LOAD_AVERAGE_1("CPU load average for the past 1 minute, %", false, false, BOX),
+    CPU_LOAD_AVERAGE_5("CPU load average for the past 5 minutes, %", false, false, BOX),
+    CPU_LOAD_AVERAGE_15("CPU load average for the past 15 minutes, %", false, false, BOX),
 
-    JMX_GC_MINOR_TIME("All GC minor time", true, SUT),
-    JMX_GC_MINOR_UNIT("All GC minor unit", true, SUT),
-    JMX_GC_MAJOR_TIME("All GC major time", true, SUT),
-    JMX_GC_MAJOR_UNIT("All GC major unit", true, SUT),
+    JMX_GC_MINOR_TIME("All GC minor time", true, false, SUT),
+    JMX_GC_MINOR_UNIT("All GC minor unit", true, false, SUT),
+    JMX_GC_MAJOR_TIME("All GC major time", true, false, SUT),
+    JMX_GC_MAJOR_UNIT("All GC major unit", true, false, SUT),
 
-    HEAP_MEMORY_INIT("Heap init memory", false, SUT),
-    HEAP_MEMORY_USED("Heap used memory", false, SUT),
-    HEAP_MEMORY_COMMITTED("Heap committed memory, MiB", false, SUT),
-    HEAP_MEMORY_MAX("Heap max memory, MiB", false, SUT),
+    HEAP_MEMORY_INIT("Heap init memory", false, false, SUT),
+    HEAP_MEMORY_USED("Heap used memory", false, false, SUT),
+    HEAP_MEMORY_COMMITTED("Heap committed memory, MiB", false, false, SUT),
+    HEAP_MEMORY_MAX("Heap max memory, MiB", false, false, SUT),
 
-    NON_HEAP_MEMORY_INIT("Non heap init memory, MiB", false, SUT),
-    NON_HEAP_MEMORY_USED("Non heap used memory, MiB", false, SUT),
-    NON_HEAP_MEMORY_COMMITTED("Non heap committed memory, MiB", false, SUT),
-    NON_HEAP_MEMORY_MAX("Non heap max memory, MiB", false, SUT),
+    NON_HEAP_MEMORY_INIT("Non heap init memory, MiB", false, false, SUT),
+    NON_HEAP_MEMORY_USED("Non heap used memory, MiB", false, false, SUT),
+    NON_HEAP_MEMORY_COMMITTED("Non heap committed memory, MiB", false, false, SUT),
+    NON_HEAP_MEMORY_MAX("Non heap max memory, MiB", false, false, SUT),
 
-    OPEN_FILE_DESCRIPTOR_COUNT("Count of open file descriptors", false, SUT);
+    OPEN_FILE_DESCRIPTOR_COUNT("Count of open file descriptors", false, false, SUT);
 
     private String description;
     private boolean isCumulativeCounter;
+    private boolean isRated;
     private MonitoringParameterLevel level;
 
-    DefaultMonitoringParameters(String description, boolean isCumulativeCounter, MonitoringParameterLevel level) {
+    DefaultMonitoringParameters(String description, boolean isCumulativeCounter, boolean isRated, MonitoringParameterLevel level) {
         this.description = description;
         this.isCumulativeCounter = isCumulativeCounter;
+        this.isRated = isRated;
         this.level = level;
     }
 
@@ -87,6 +89,11 @@ public enum DefaultMonitoringParameters implements MonitoringParameter {
     @Override
     public boolean isCumulativeCounter() {
         return isCumulativeCounter;
+    }
+
+    @Override
+    public boolean isRated(){
+        return isRated;
     }
 
     @Override

@@ -38,11 +38,15 @@ public class MonitoringParameterBean implements MonitoringParameter {
     @Index(name="cumulativeCounter_index")
     private boolean cumulativeCounter;
 
+    @Index(name = "rated_index")
+    private boolean rated;
+
     public static MonitoringParameterBean copyOf(MonitoringParameter parameter) {
         MonitoringParameterBean result = new MonitoringParameterBean();
         result.setDescription(parameter.getDescription());
         result.setCumulativeCounter(parameter.isCumulativeCounter());
         result.setLevel(parameter.getLevel());
+        result.setRated(parameter.isRated());
         return result;
     }
 
@@ -71,6 +75,15 @@ public class MonitoringParameterBean implements MonitoringParameter {
 
     public void setCumulativeCounter(boolean cumulativeCounter) {
         this.cumulativeCounter = cumulativeCounter;
+    }
+
+    @Override
+    public boolean isRated() {
+        return rated;
+    }
+
+    public void setRated(boolean rated){
+        this.rated = rated;
     }
 
     @Override
