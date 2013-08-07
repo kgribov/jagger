@@ -22,6 +22,7 @@ package com.griddynamics.jagger.agent.model;
 
 public interface MonitoringParameter {
     boolean isCumulativeCounter();
+    boolean isRated();
 
     MonitoringParameterLevel getLevel();
 

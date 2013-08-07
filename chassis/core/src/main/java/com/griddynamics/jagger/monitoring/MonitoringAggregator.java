@@ -292,6 +292,10 @@ public class MonitoringAggregator extends LogProcessor implements DistributionLi
                                             previousStatisticsBySuT.getAverageValue()});
                             trace.remove(i);
                         } else {
+                            if (stream.monitoringParameter.isRated()){
+                                long time = statisticsBySuT.getTime() - previousStatisticsBySuT.getTime();
+                                diffValue = diffValue*1000 / (double)time;
+                            }
                             statisticsBySuT.setAverageValue(diffValue);
                         }
                     }
