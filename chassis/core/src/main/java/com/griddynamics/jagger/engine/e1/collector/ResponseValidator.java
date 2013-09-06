@@ -29,7 +29,9 @@ import com.griddynamics.jagger.engine.e1.scenario.KernelSideObject;
  * @n
  * @par Details:
  * @details Validates the result of invocation of specified query and endpoint. Save validation result to database.
- * Validators execute one by one. If one fails, no another will be executed,
+ * Validators execute one by one. If one fails, no another will be executed. @n
+ * @n
+ * To view all collectors implementations click here @ref Main_Collectors_group
  *
  * @param <Q> - Query type
  * @param <R> - Result type
@@ -79,14 +81,25 @@ public abstract class ResponseValidator<Q, E, R> extends KernelSideObject {
 /* **************** Collectors page ************************* */
 /// @defgroup Main_Collectors_General_group General information about collectors
 ///
+/// @details Collectors calculate information based on invocation response and validate result of invocation. @n
+/// If validation fails, invocation will be mark as failed. So validator can affect success rate.
+/// @n
+/// @n
+/// The results of collectors will be available in report and webUI.
 /// @li General information: @ref Main_Collectors_Base_group
 /// @li Available implementations: @ref Main_Collectors_group
 /// @li How to customize: @ref Main_HowToCustomizeCollectors_group
 
 /* **************** How to customize collector ************************* */
 /// @defgroup Main_HowToCustomizeCollectors_group Custom collectors
+///
 /// @details
-/// There are two ways to create custom collector - create custom validator or create custom metric calculator. @n
+/// @ref Main_Collectors_General_group
+/// @n
+/// @n
+/// There are two ways to collect some information from responses.
+/// @li Create custom @xlink{metric} calculator, which will calculate something and then aggregate this.
+/// @li Create sutom @xlink{validator}, which will validate results of invocations.
 /// @n
 ///
 /// How to create custom validator -
@@ -123,5 +136,3 @@ public abstract class ResponseValidator<Q, E, R> extends KernelSideObject {
 /// @b Note:
 /// @li full examples of the code are available in maven archetype-examples
 /// @li instead of ${package} write the name of your package
-/// @li To view all collectors implementations click here @ref Main_Collectors_group
-

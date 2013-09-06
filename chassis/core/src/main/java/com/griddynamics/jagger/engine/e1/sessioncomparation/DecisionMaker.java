@@ -45,4 +45,6 @@ public interface DecisionMaker {
 /* **************** How to customize decision maker ************************* */
 /// @defgroup Main_HowToCustomizeDecisionMakers_group Custom decision makers
 ///
-/// @details
+/// @details  Under construction
+/// @todo implement docu
+///

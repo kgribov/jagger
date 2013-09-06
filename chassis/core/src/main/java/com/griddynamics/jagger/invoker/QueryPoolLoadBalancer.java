@@ -77,33 +77,3 @@ public abstract class QueryPoolLoadBalancer<Q, E> implements LoadBalancer<Q, E> 
         return size;
     }
 }
-
-/* **************** Providers page *************************  */
-/// @defgroup Main_Providers_General_group General information about providers
-///
-/// @li Available implementations: @ref Main_Providers_group
-/// @li How to customize: @ref Main_HowToCustomizeProviders_group
-
-/// @defgroup Main_HowToCustomizeProviders_group Custom providers
-/// @details
-/// To add custom provider you need to do -
-/// 1. Create class which implements interface Iterable<Q>
-/// @dontinclude  FileReaderIterable.java
-/// @skipline  public class FileReaderIterable
-/// @n
-///
-/// 2. Create bean in XML file with some id
-/// @dontinclude  fileprovider.conf.xml
-/// @skip begin: following section is used for docu generation - provider usage
-/// @until end: following section is used for docu generation - provider usage
-/// @n
-///
-/// 3. Create component @xlink{query-provider}(or @xlink{endpoint-provider}) with type query-provider-ref and set id of provider to attribute ref.
-/// @dontinclude  test.suite.scenario.config.xml
-/// @skip  begin: following section is used for docu generation - provider custom
-/// @until end: following section is used for docu generation - provider custom
-/// @n
-/// @b Note:
-/// @li full examples of the code are available in maven archetype-examples
-/// @li instead of ${package} write the name of your package
-/// @li To view all providers implementations click here @ref Main_Providers_group

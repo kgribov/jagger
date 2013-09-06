@@ -29,8 +29,11 @@ import java.util.Iterator;
  * @author Grid Dynamics
  * @n
  * @par Details:
- * @details LoadBalancer can use query and endpoint providers to load data and create pairs by some algorithm(if you choose QueryPoolLoadBalancer as an abstract implementation).
- * You can use no providers and load all necessary data in your implementation of LoadBalancer.
+ * @details LoadBalancer (distributor) can use query and endpoint providers to load data and create pairs by some algorithm. @n
+ * (if you choose @ref QueryPoolLoadBalancer as an abstract implementation). @n
+ * You can use no providers and load all necessary data in your implementation of LoadBalancer. @n
+ * @n
+ * To view all distributors implementations click here @ref Main_Distributors_group
  *
  * @param <Q> - Query type
  * @param <E> - Endpoint type
@@ -70,6 +73,8 @@ public interface LoadBalancer<Q, E> extends Iterable<Pair<Q, E>>, Serializable {
 /* **************** Distributors page *************************  */
 /// @defgroup Main_Distributors_General_group General information about distributors
 ///
+/// @details Distributors provide pairs of endpoints and queries for invokers
+///
 /// @li General information: @ref Main_Distributors_Base_group
 /// @li Available implementations: @ref Main_Distributors_group
 /// @li How to customize: @ref Main_HowToCustomizeDistributors_group
@@ -79,6 +84,9 @@ public interface LoadBalancer<Q, E> extends Iterable<Pair<Q, E>>, Serializable {
 /// @defgroup Main_HowToCustomizeDistributors_group Custom distributors
 ///
 /// @details
+/// @ref Main_Distributors_General_group
+/// @n
+/// @n
 /// To add custom distributor you need to do:
 ///
 /// 1. Create class which implements @ref Main_Distributors_Base_group interface or extends one of classes @ref Main_Distributors_group
@@ -100,7 +108,6 @@ public interface LoadBalancer<Q, E> extends Iterable<Pair<Q, E>>, Serializable {
 /// @b Note:
 /// @li full examples of the code are available in maven archetype-examples
 /// @li instead of ${package} write the name of your package
-/// @li To view all distributors implementations click here @ref Main_Distributors_group
 
 
 
