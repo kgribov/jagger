@@ -32,7 +32,7 @@
         >
 
     <beans:import resource="../provider/object-creators.conf.xml" />
-    <beans:import resource="../metric/calculators.conf.xml" />
+    <beans:import resource="../metric/calculatorsAndAggregators.conf.xml" />
 
     <beans:bean id="endpointsIterable-sleep-5ms" class="java.util.LinkedList">
         <beans:constructor-arg value="#{endpointConfigurator.getEndpoints('/sleep/5')}"/>
@@ -45,16 +45,11 @@
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
 
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
+            <!--Standard metrics-->
+            <metric xsi:type="metric-success-rate" plotData="true"/>
 
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
+            <metric xsi:type="metric-not-null-response" plotData="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
-            </metric>
-
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
             </metric>
 
         </info-collectors>
@@ -82,16 +77,23 @@
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
 
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
-
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
+            <!--Math functions with standard aggregators-->
+            <metric xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
+                <metric-aggregator xsi:type="metric-aggregator-std"/>
                 <metric-aggregator xsi:type="metric-aggregator-sum"/>
             </metric>
 
             <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
                 <metric-aggregator xsi:type="metric-aggregator-std"/>
+                <metric-aggregator xsi:type="metric-aggregator-sum"/>
+            </metric>
+
+            <metric xsi:type="metric-custom" calculator="sin" plotData="true" saveSummary="true">
+                <metric-aggregator xsi:type="metric-aggregator-avg"/>
+                <metric-aggregator xsi:type="metric-aggregator-std"/>
+                <metric-aggregator xsi:type="metric-aggregator-sum"/>
             </metric>
 
         </info-collectors>
@@ -125,16 +127,20 @@
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
 
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
-
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
+            <!--Math functions with custom aggregators-->
+            <metric xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
+                <metric-aggregator xsi:type="metric-aggregator-ref" ref="maxAggregator"/>
+                <metric-aggregator xsi:type="metric-aggregator-ref" ref="minAggregator"/>
             </metric>
 
             <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
+                <metric-aggregator xsi:type="metric-aggregator-ref" ref="maxAggregator"/>
+                <metric-aggregator xsi:type="metric-aggregator-ref" ref="minAggregator"/>
+            </metric>
+
+            <metric xsi:type="metric-custom" calculator="sin" plotData="true" saveSummary="true">
+                <metric-aggregator xsi:type="metric-aggregator-ref" ref="maxAggregator"/>
+                <metric-aggregator xsi:type="metric-aggregator-ref" ref="minAggregator"/>
             </metric>
 
         </info-collectors>
@@ -165,16 +171,15 @@
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
 
+            <!--Success rate metrics-->
             <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
 
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
+            <metric id="CustomSuccessRatePlot" xsi:type="metric-success-rate" plotData="true" saveSummary="false">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
             </metric>
 
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
+            <metric id="CustomSuccessRateSummary" xsi:type="metric-success-rate" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
             </metric>
 
         </info-collectors>
@@ -205,18 +210,6 @@
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
 
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
-
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
-            </metric>
-
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
-            </metric>
-
         </info-collectors>
 
          <scenario  xsi:type="scenario-query-pool">
@@ -244,18 +237,6 @@
             <validator xsi:type="validator-not-null-response"/>
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
-
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
-
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
-            </metric>
-
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
-            </metric>
 
         </info-collectors>
 
@@ -285,18 +266,6 @@
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
 
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
-
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
-            </metric>
-
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
-            </metric>
-
         </info-collectors>
 
         <scenario  xsi:type="scenario-query-pool">
@@ -324,19 +293,6 @@
             <validator xsi:type="validator-not-null-response"/>
 
             <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
-
-            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
-
-            <metric xsi:type="metric-not-null-response" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-sum"/>
-            </metric>
-
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-                <metric-aggregator xsi:type="metric-aggregator-std"/>
-            </metric>
-
         </info-collectors>
 
         <scenario  xsi:type="scenario-query-pool">
