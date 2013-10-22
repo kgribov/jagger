@@ -23,18 +23,18 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="alwaysIncrease" class="com.griddynamics.jaggertest.metric.AlwaysIncrease"/>
+    <bean id="alwaysIncrease" class="metric.AlwaysIncrease"/>
 
-    <bean id="constant" class="com.griddynamics.jaggertest.metric.ConstantMetric"/>
+    <bean id="constant" class="metric.ConstantMetric"/>
 
-    <bean id="responseSize" class="com.griddynamics.jaggertest.metric.ResponseBodySize"/>
+    <bean id="responseSize" class="metric.ResponseBodySize"/>
 
-    <bean id="returnCode" class="com.griddynamics.jaggertest.metric.ReturnCode"/>
+    <bean id="returnCode" class="metric.ReturnCode"/>
 
-    <bean id="sin" class="com.griddynamics.jaggertest.metric.SinMetric"/>
+    <bean id="sin" class="metric.SinMetric"/>
 
-    <bean id="maxAggregator" class="com.griddynamics.jaggertest.metric.aggregator.MaxAggregator"/>
+    <bean id="maxAggregator" class="metric.aggregator.MaxAggregator"/>
 
-    <bean id="minAggregator" class="com.griddynamics.jaggertest.metric.aggregator.MinAggregator"/>
+    <bean id="minAggregator" class="metric.aggregator.MinAggregator"/>
 
 </beans>

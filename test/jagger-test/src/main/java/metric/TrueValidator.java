@@ -1,4 +1,4 @@
-package com.griddynamics.jaggertest.metric;
+package metric;
 
 import com.griddynamics.jagger.coordinator.NodeContext;
 import com.griddynamics.jagger.engine.e1.collector.ResponseValidator;

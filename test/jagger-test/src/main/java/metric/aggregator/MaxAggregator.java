@@ -1,4 +1,4 @@
-package com.griddynamics.jaggertest.metric.aggregator;
+package metric.aggregator;
 
 import com.griddynamics.jagger.engine.e1.collector.MetricAggregator;
 
@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * Time: 7:04 PM
  * To change this template use File | Settings | File Templates.
  */
-public class MinAggregator implements MetricAggregator<Double>{
+public class MaxAggregator implements MetricAggregator<Double>{
 
     private ArrayList<Double> values = new ArrayList<Double>(1000);
 
@@ -22,9 +22,9 @@ public class MinAggregator implements MetricAggregator<Double>{
 
     @Override
     public Double getAggregated() {
-        Double max = Double.MAX_VALUE;
+        Double max = Double.MIN_VALUE;
         for (Double value : values){
-            max = Math.min(max, value);
+            max = Math.max(max, value);
         }
         return max;
     }

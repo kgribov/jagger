@@ -1,4 +1,4 @@
-package com.griddynamics.jaggertest.metric;
+package metric;
 
 import com.griddynamics.jagger.engine.e1.collector.MetricCalculator;
 import com.griddynamics.jagger.invoker.http.HttpResponse;
