@@ -78,19 +78,19 @@
             <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
 
             <!--Math functions with standard aggregators-->
-            <metric xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
+            <metric id="constant1" xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
                 <metric-aggregator xsi:type="metric-aggregator-std"/>
                 <metric-aggregator xsi:type="metric-aggregator-sum"/>
             </metric>
 
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
+            <metric id="increase1" xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
                 <metric-aggregator xsi:type="metric-aggregator-std"/>
                 <metric-aggregator xsi:type="metric-aggregator-sum"/>
             </metric>
 
-            <metric xsi:type="metric-custom" calculator="sin" plotData="true" saveSummary="true">
+            <metric id="sin1" xsi:type="metric-custom" calculator="sin" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
                 <metric-aggregator xsi:type="metric-aggregator-std"/>
                 <metric-aggregator xsi:type="metric-aggregator-sum"/>
@@ -128,17 +128,17 @@
             <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
 
             <!--Math functions with custom aggregators-->
-            <metric xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
+            <metric id="constant2" xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-ref" ref="maxAggregator"/>
                 <metric-aggregator xsi:type="metric-aggregator-ref" ref="minAggregator"/>
             </metric>
 
-            <metric xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
+            <metric id="increase2" xsi:type="metric-custom" calculator="alwaysIncrease" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-ref" ref="maxAggregator"/>
                 <metric-aggregator xsi:type="metric-aggregator-ref" ref="minAggregator"/>
             </metric>
 
-            <metric xsi:type="metric-custom" calculator="sin" plotData="true" saveSummary="true">
+            <metric id="sin2" xsi:type="metric-custom" calculator="sin" plotData="true" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-ref" ref="maxAggregator"/>
                 <metric-aggregator xsi:type="metric-aggregator-ref" ref="minAggregator"/>
             </metric>
@@ -173,6 +173,8 @@
 
             <!--Success rate metrics-->
             <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
+
+            <metric id="CustomNameSuccessRate" xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
 
             <metric id="CustomSuccessRatePlot" xsi:type="metric-success-rate" plotData="true" saveSummary="false">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
@@ -243,11 +245,6 @@
 
     <test-description id="load-cpu-service-10000000" name="load-cpu-service-10000000" version="1" >
 
-        <info-collectors>
-            <validator xsi:type="validator-not-null-response"/>
-            <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
-        </info-collectors>
-
         <scenario  xsi:type="scenario-query-pool">
             <query-distributor xsi:type="query-distributor-round-robin"/>
             <invoker xsi:type="invoker-http"/>
@@ -269,11 +266,6 @@
 
     <test-description id="allocate-memory-service-1000000x200" name="allocate-memory-service-1000000x200" version="1" >
 
-        <info-collectors>
-            <validator xsi:type="validator-not-null-response"/>
-            <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
-        </info-collectors>
-
         <scenario  xsi:type="scenario-query-pool">
             <query-distributor xsi:type="query-distributor-round-robin"/>
             <invoker xsi:type="invoker-http"/>
@@ -294,11 +286,6 @@
     </beans:bean>
 
     <test-description id="tcp-service-10000" name="tcp-service-10000" version="1" >
-
-        <info-collectors>
-            <validator xsi:type="validator-not-null-response"/>
-            <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
-        </info-collectors>
 
         <scenario  xsi:type="scenario-query-pool">
             <query-distributor xsi:type="query-distributor-round-robin"/>
