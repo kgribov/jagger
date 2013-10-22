@@ -27,7 +27,9 @@
 
     <bean id="constant" class="com.griddynamics.jaggertest.metric.ConstantMetric"/>
 
-    <bean id="responseSize" class="com.griddynamics.jaggertest.metric.ResponseSize"/>
+    <bean id="responseSize" class="com.griddynamics.jaggertest.metric.ResponseBodySize"/>
+
+    <bean id="returnCode" class="com.griddynamics.jaggertest.metric.ReturnCode"/>
 
     <bean id="sin" class="com.griddynamics.jaggertest.metric.SinMetric"/>
 

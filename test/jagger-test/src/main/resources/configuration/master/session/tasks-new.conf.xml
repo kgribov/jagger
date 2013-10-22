@@ -43,7 +43,7 @@
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
 
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
 
             <!--Standard metrics-->
             <metric xsi:type="metric-success-rate" plotData="true"/>
@@ -75,7 +75,7 @@
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
 
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
 
             <!--Math functions with standard aggregators-->
             <metric xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
@@ -125,7 +125,7 @@
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
 
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
 
             <!--Math functions with custom aggregators-->
             <metric xsi:type="metric-custom" calculator="constant" plotData="true" saveSummary="true">
@@ -169,7 +169,7 @@
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
 
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
 
             <!--Success rate metrics-->
             <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
@@ -208,8 +208,18 @@
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
 
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
 
+            <!--Response metrics-->
+            <metric id="BodySize" xsi:type="metric-custom" calculator="responseSize" plotData="true">
+                <metric-aggregator xsi:type="metric-aggregator-avg"/>
+                <metric-aggregator xsi:type="metric-aggregator-sum"/>
+            </metric>
+
+            <metric id="ReturnCode" xsi:type="metric-custom" calculator="returnCode" plotData="true">
+                <metric-aggregator xsi:type="metric-aggregator-avg"/>
+                <metric-aggregator xsi:type="metric-aggregator-sum"/>
+            </metric>
         </info-collectors>
 
          <scenario  xsi:type="scenario-query-pool">
@@ -235,9 +245,7 @@
 
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
-
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
-
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
         </info-collectors>
 
         <scenario  xsi:type="scenario-query-pool">
@@ -263,9 +271,7 @@
 
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
-
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
-
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
         </info-collectors>
 
         <scenario  xsi:type="scenario-query-pool">
@@ -291,8 +297,7 @@
 
         <info-collectors>
             <validator xsi:type="validator-not-null-response"/>
-
-            <validator xsi:type="validator-custom" validator="configuration.master.metric.TrueValidator"/>
+            <validator xsi:type="validator-custom" validator="com.griddynamics.jaggertest.metric.TrueValidator"/>
         </info-collectors>
 
         <scenario  xsi:type="scenario-query-pool">

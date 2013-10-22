@@ -1,20 +1,18 @@
 package com.griddynamics.jaggertest.metric;
 
 import com.griddynamics.jagger.engine.e1.collector.MetricCalculator;
+import com.griddynamics.jagger.invoker.http.HttpResponse;
 
 /**
  * Created with IntelliJ IDEA.
  * User: kgribov
- * Date: 9/26/13
- * Time: 12:33 PM
+ * Date: 10/22/13
+ * Time: 2:13 PM
  * To change this template use File | Settings | File Templates.
  */
-public class AlwaysIncrease implements MetricCalculator {
-
-    private long count = 0;
-
+public class ReturnCode implements MetricCalculator<HttpResponse> {
     @Override
-    public Long calculate(Object response) {
-        return count++;
+    public Number calculate(HttpResponse response) {
+        return response.getStatusCode();
     }
 }
