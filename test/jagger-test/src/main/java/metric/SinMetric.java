@@ -16,7 +16,7 @@ public class SinMetric implements MetricCalculator{
     @Override
     public Double calculate(Object response) {
         double result = Math.sin(step);
-        step += Math.PI/20;
+        step += Math.PI/500;
         return result;
     }
 }

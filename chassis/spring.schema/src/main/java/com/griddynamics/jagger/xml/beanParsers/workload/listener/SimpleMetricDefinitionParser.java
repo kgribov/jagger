@@ -18,4 +18,9 @@ public class SimpleMetricDefinitionParser extends AbstractCalculatorBasedDefinit
     protected Object getMetricCalculator(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
         return BeanDefinitionBuilder.genericBeanDefinition(SimpleMetricCalculator.class).getBeanDefinition();
     }
+
+    @Override
+    protected String getStandardCollectorName() {
+        return "NotNullResponse";
+    }
 }
