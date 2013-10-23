@@ -172,17 +172,34 @@
             <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
 
             <!--Success rate metrics-->
+            <!-- begin: following section is used for docu generation - metric-success-rate -->
+
+            <!--    Example #1: Success rate metric with default aggregators
+                    plotData = true => metric vs time data will be saved (displayed in WebUI and PDF report)
+                    saveSummary = true => summary value for summary page will be not saved -->
             <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
 
+
+
+            <!--    Example #2: Success rate metric with custom name and default aggregators -->
             <metric id="CustomNameSuccessRate" xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
 
+
+
+            <!--    Example #3: Success rate metric with custom name and custom aggregators
+                    With this setup success rate will be aggregated on interval like on picture below -->
             <metric id="CustomSuccessRatePlot" xsi:type="metric-success-rate" plotData="true" saveSummary="false">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
             </metric>
 
+            <!-- end: following section is used for docu generation - metric-success-rate -->
+
             <metric id="CustomSuccessRateSummary" xsi:type="metric-success-rate" saveSummary="true">
                 <metric-aggregator xsi:type="metric-aggregator-avg"/>
             </metric>
+
+
+
 
         </info-collectors>
 

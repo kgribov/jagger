@@ -41,7 +41,9 @@ import java.io.File;
  * @par Usage example in XML:
  * To use this collector add @xlink{metric-success-rate} collector to @xlink{test-description,info-collectors} block.
  * @n
- * ??? example is missing @n
+ * @dontinclude  tasks-new.conf.xml
+ * @skip  begin: following section is used for docu generation - metric-success-rate
+ * @until end: following section is used for docu generation - metric-success-rate
  * @n
  * @par Result example:
  * @image html jagger_success_rate_default_agg.png "Success rate data with default accumulative aggregators"

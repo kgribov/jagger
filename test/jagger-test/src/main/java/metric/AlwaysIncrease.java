@@ -11,10 +11,10 @@ import com.griddynamics.jagger.engine.e1.collector.MetricCalculator;
  */
 public class AlwaysIncrease implements MetricCalculator {
 
-    private int count = 0;
+    private long count = 0;
 
     @Override
-    public Integer calculate(Object response) {
+    public Long calculate(Object response) {
         return count++;
     }
 }

@@ -758,7 +758,8 @@ EXCLUDE_SYMBOLS        =
 
 #EXAMPLE_PATH           = ./archetype-examples/
 EXAMPLE_PATH           = ./archetype-examples/src/main/resources/archetype-resources/src/main/java/ \
-                         ./archetype-examples/src/main/resources/archetype-resources/src/main/resources/
+                         ./archetype-examples/src/main/resources/archetype-resources/src/main/resources/ \
+                         ./test/jagger-test/src/main/resources/configuration/master/session/
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
