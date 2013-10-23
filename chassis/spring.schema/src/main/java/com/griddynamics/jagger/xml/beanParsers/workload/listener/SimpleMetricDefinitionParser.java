@@ -20,7 +20,7 @@ public class SimpleMetricDefinitionParser extends AbstractCalculatorBasedDefinit
     }
 
     @Override
-    protected String getStandardCollectorName() {
+    protected String getDefaultCollectorName() {
         return "NotNullResponse";
     }
 }
