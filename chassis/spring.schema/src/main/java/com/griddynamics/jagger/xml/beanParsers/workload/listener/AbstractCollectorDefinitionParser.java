@@ -41,6 +41,10 @@ public abstract class AbstractCollectorDefinitionParser extends AbstractSimpleBe
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 
+//      Use "XMLConstants.DEFAULT_METRIC_NAME" (No name)
+//      If user have defined custom Id => use this name
+//      If user have not defined custom Id & default aggregators are used => use default collector name
+
         String name = null;
 
         if (!element.getAttribute(XMLConstants.ID).isEmpty()) {
@@ -70,7 +74,7 @@ public abstract class AbstractCollectorDefinitionParser extends AbstractSimpleBe
             }
 
             if (name == null){
-                name = getStandardCollectorName();
+                name = getDefaultCollectorName();
             }
         }
 
@@ -84,7 +88,7 @@ public abstract class AbstractCollectorDefinitionParser extends AbstractSimpleBe
 
     protected abstract Collection<MetricAggregatorProvider> getAggregators();
 
-    protected String getStandardCollectorName(){
+    protected String getDefaultCollectorName(){
         return XMLConstants.DEFAULT_METRIC_NAME;
     }
 

@@ -43,7 +43,7 @@ public class SuccessRateCollectorDefinitionParser extends AbstractCollectorDefin
     }
 
     @Override
-    protected String getStandardCollectorName() {
+    protected String getDefaultCollectorName() {
         return XMLConstants.DEFAULT_METRIC_SUCCESS_RATE_NAME;
     }
 }
