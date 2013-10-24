@@ -41,7 +41,7 @@ public class MinAggregator implements MetricAggregatorProvider{
 
             @Override
             public String getName() {
-                return "Max";
+                return "Min";
             }
         };
     }
