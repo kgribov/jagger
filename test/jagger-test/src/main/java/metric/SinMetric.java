@@ -12,10 +12,11 @@ import com.griddynamics.jagger.engine.e1.collector.MetricCalculator;
 public class SinMetric implements MetricCalculator{
 
     private double step = 0;
+    private final double Ybase = 1;
 
     @Override
     public Double calculate(Object response) {
-        double result = Math.sin(step);
+        double result = Math.sin(step)+ Ybase;
         step += Math.PI/500;
         return result;
     }

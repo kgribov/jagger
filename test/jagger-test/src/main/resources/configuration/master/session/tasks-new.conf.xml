@@ -48,9 +48,7 @@
             <!--Standard metrics-->
             <metric xsi:type="metric-success-rate" plotData="true"/>
 
-            <metric xsi:type="metric-not-null-response" plotData="true">
-                <metric-aggregator xsi:type="metric-aggregator-avg"/>
-            </metric>
+            <metric xsi:type="metric-not-null-response" plotData="true"/>
 
         </info-collectors>
 
