@@ -16,20 +16,23 @@ public class MaxAggregator implements MetricAggregatorProvider{
 
     @Override
     public MetricAggregator provide() {
-        return new MetricAggregator<Double>() {
+        return new MetricAggregator<Number>() {
 
-            private ArrayList<Double> values = new ArrayList<Double>(1000);
+            private ArrayList<Number> values = new ArrayList<Number>(1000);
 
             @Override
-            public void append(Double calculated) {
+            public void append(Number calculated) {
                 values.add(calculated);
             }
 
             @Override
-            public Double getAggregated() {
+            public Number getAggregated() {
+                if (values.isEmpty())
+                    return null;
+
                 Double max = Double.MIN_VALUE;
-                for (Double value : values){
-                    max = Math.max(max, value);
+                for (Number value : values){
+                    max = Math.max(max, value.doubleValue());
                 }
                 return max;
             }
