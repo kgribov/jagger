@@ -57,11 +57,12 @@ public class HibernateKeyValueStorage extends HibernateDaoSupport implements Key
 
     @Override
     public boolean isAvailable() {
-        return true;
+        return false;
     }
 
     @Override
     public void initialize() {
+        validate();
     }
 
     @Override
@@ -194,8 +195,8 @@ public class HibernateKeyValueStorage extends HibernateDaoSupport implements Key
     private final List<ColumnType> types = Arrays.asList(new ColumnType("MetricDetails",          "value", "double"),
                                                          new ColumnType("DiagnosticResultEntity", "total", "double"));
 
-    @Override
-    public void validate() {
+
+    private void validate() {
         boolean needToPrintMessage = false;
         for (ColumnType type : types){
             String oldType = validateType(type);

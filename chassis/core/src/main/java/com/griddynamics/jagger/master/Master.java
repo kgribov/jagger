@@ -128,8 +128,6 @@ public class Master implements Runnable {
             keyValueStorage.initialize();
         }
 
-        keyValueStorage.validate();
-
         String sessionId = sessionIdProvider.getSessionId();
         String sessionComment = sessionIdProvider.getSessionComment();
 
