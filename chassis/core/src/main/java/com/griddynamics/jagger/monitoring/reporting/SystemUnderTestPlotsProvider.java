@@ -107,18 +107,18 @@ public class SystemUnderTestPlotsProvider extends AbstractMonitoringReportProvid
         DetailStatistics detailStatistics = getStatistics();
 
         for (String taskId : detailStatistics.findTaskIds()) {
-            log.info("    Create task plots for task '{}'", taskId);
+            log.debug("    Create task plots for task '{}'", taskId);
 
             List<MonitoringReporterData> plots = new LinkedList<MonitoringReporterData>();
             for (GroupKey groupName : plotGroups.getPlotGroups().keySet()) {
-                log.info("        Create task plots for group '{}'", groupName);
+                log.debug("        Create task plots for group '{}'", groupName);
 
                 if (showPlotsByGlobal) {
-                    log.info("            Create global task plots");
+                    log.debug("            Create global task plots");
 
                     XYSeriesCollection chartsCollection = new XYSeriesCollection();
                     for (MonitoringParameter parameterId : plotGroups.getPlotGroups().get(groupName)) {
-                        log.info("                Create global task plots for parameter '{}'", parameterId);
+                        log.debug("                Create global task plots for parameter '{}'", parameterId);
 
                         MonitoringParameterBean param = MonitoringParameterBean.copyOf(parameterId);
                         List<MonitoringStatistics> statistics = detailStatistics.findGlobalStatistics(taskId, param);
@@ -152,14 +152,14 @@ public class SystemUnderTestPlotsProvider extends AbstractMonitoringReportProvid
                 }
 
                 if (showPlotsByBox) {
-                    log.info("            Create box task plots");
+                    log.debug("            Create box task plots");
 
                     for (String boxIdentifier : detailStatistics.findBoxIdentifiers(taskId)) {
-                        log.info("                Create box task plots for box '{}'", boxIdentifier);
+                        log.debug("                Create box task plots for box '{}'", boxIdentifier);
 
                         XYSeriesCollection chartsCollection = new XYSeriesCollection();
                         for (MonitoringParameter parameterId : plotGroups.getPlotGroups().get(groupName)) {
-                            log.info("                    Create box task plots for parameter '{}'", parameterId);
+                            log.debug("                    Create box task plots for parameter '{}'", parameterId);
 
                             MonitoringParameterBean param = MonitoringParameterBean.copyOf(parameterId);
                             List<MonitoringStatistics> statistics = detailStatistics.findBoxStatistics(taskId, param, boxIdentifier);
@@ -194,14 +194,14 @@ public class SystemUnderTestPlotsProvider extends AbstractMonitoringReportProvid
                 }
 
                 if (showPlotsBySuT) {
-                    log.info("            Create sut task plots");
+                    log.debug("            Create sut task plots");
 
                     for (String sutUrl : detailStatistics.findSutUrls(taskId)) {
-                        log.info("                Create sut task plots for sut '{}'", sutUrl);
+                        log.debug("                Create sut task plots for sut '{}'", sutUrl);
 
                         XYSeriesCollection chartsCollection = new XYSeriesCollection();
                         for (MonitoringParameter parameterId : plotGroups.getPlotGroups().get(groupName)) {
-                            log.info("                    Create sut task plots for parameter '{}'", parameterId);
+                            log.debug("                    Create sut task plots for parameter '{}'", parameterId);
 
                             MonitoringParameterBean param = MonitoringParameterBean.copyOf(parameterId);
                             List<MonitoringStatistics> statistics = detailStatistics.findSutStatistics(taskId, param, sutUrl);
