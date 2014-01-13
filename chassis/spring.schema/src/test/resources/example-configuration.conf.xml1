@@ -143,7 +143,7 @@
         <scenario xsi:type="scenario-ref" ref="sc1"/>
     </test-description>
 
-    <scenario id="sc1" xsi:type="scenario-query-pool" calibrationSamplesCount="1101">
+    <scenario-query-pool id="sc1" calibrationSamplesCount="1101">
 
         <query-distributor xsi:type="query-distributor-round-robin"/>
 
@@ -152,6 +152,6 @@
         <endpoint-provider xsi:type="endpoint-provider-ref" ref="endpointProvider1"/>
 
         <query-provider xsi:type="query-provider-ref" ref="qProvider1" />
-    </scenario>
+    </scenario-query-pool>
 
 </beans:beans>
