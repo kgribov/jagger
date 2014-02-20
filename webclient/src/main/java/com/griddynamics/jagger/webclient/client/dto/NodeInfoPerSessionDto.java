@@ -17,55 +17,29 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.griddynamics.jagger.webclient.client.dto;
 
-package com.griddynamics.jagger.storage.rdb;
+import java.io.Serializable;
+import java.util.List;
 
-import javax.persistence.*;
+public class NodeInfoPerSessionDto implements Serializable {
 
-@Entity
-public class KeyValue {
-	private Long id;
+    private String sessionId;
+    private List<NodeInfoDto> nodes;
 
-	private String namespace;
+    public NodeInfoPerSessionDto(String sessionId, List<NodeInfoDto> nodes) {
+        this.sessionId = sessionId;
+        this.nodes = nodes;
+    }
+    public NodeInfoPerSessionDto() {}
 
-	private String key;
-	private byte[] data;
+    public String getSessionId() {
+        return sessionId;
+    }
+    public List<NodeInfoDto> getNodes() {
+        return nodes;
+    }
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public Long getId() {
-		return id;
-	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-    @Column(name = "j4g_namespace")
-	public String getNamespace() {
-		return namespace;
-	}
-
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
-
-    @Column(name = "j4g_key")
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	@Lob
-	public byte[] getData() {
-		return data;
-	}
-
-	public void setData(byte[] data) {
-		this.data = data;
-	}
 
 }

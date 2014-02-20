@@ -51,6 +51,7 @@
                 <entry key="/SessionDataService" value-ref="sessionDataService"/>
                 <entry key="/MetricDataService" value-ref="metricDataService"/>
                 <entry key="/ControlTreeCreatorService" value-ref="controlTreeCreatorService"/>
+                <entry key="/NodeInfoService" value-ref="nodeInfoService"/>
                 <entry key="/CommonDataService" value-ref="commonDataService"/>
             </map>
         </property>
@@ -90,8 +91,8 @@
     <bean id="sessionDataService" class="com.griddynamics.jagger.webclient.server.SessionDataServiceImpl"/>
 
     <bean id="commonDataService" class="com.griddynamics.jagger.webclient.server.CommonDataServiceImpl">
-        <property name="userCommentAvailable" value="${user.comment.available}"/>
-        <property name="userCommentMaxLength" value="${user.comment.max.length}"/>
+        <property name="userCommentAvailable" value="${user.comment.available:false}"/>
+        <property name="userCommentMaxLength" value="${user.comment.max.length:1000}"/>
     </bean>
 
     <!-- @deprecated another conception of control since jagger 1.2.2-m3
@@ -158,6 +159,9 @@
             </map>
         </constructor-arg>
     </bean>
+
+    <!--===========Node Info Data Provider===========-->
+    <bean id="nodeInfoService" class="com.griddynamics.jagger.webclient.server.NodeInfoServiceImpl"/>
 
     <util:map id="standardMetrics" key-type="java.lang.String">
         <entry key="Throughput">

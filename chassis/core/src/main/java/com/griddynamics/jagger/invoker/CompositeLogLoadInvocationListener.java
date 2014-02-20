@@ -25,34 +25,40 @@ package com.griddynamics.jagger.invoker;
  *
  * @author Mairbek Khadikov
  */
-public class CompositeLoadInvocationListener<Q, R, E>
+public class CompositeLogLoadInvocationListener<Q, R, E>
         implements LoadInvocationListener<Q, R, E> {
+
+    private LoadInvocationLogger loggerListener = LoadInvocationLogger.<Q, R, E>create();
 
     private final Iterable<LoadInvocationListener<Q, R, E>> listeners;
 
-    public CompositeLoadInvocationListener(Iterable<LoadInvocationListener<Q, R, E>> listeners) {
+    public CompositeLogLoadInvocationListener(Iterable<LoadInvocationListener<Q, R, E>> listeners) {
         this.listeners = listeners;
     }
 
     public void onStart(Q query, E endpoint) {
+        loggerListener.onStart(query, endpoint);
         for (LoadInvocationListener<Q, R, E> listener : listeners) {
             listener.onStart(query, endpoint);
         }
     }
 
     public void onSuccess(Q query, E endpoint, R result, long duration) {
+        loggerListener.onSuccess(query, endpoint, result, duration);
         for (LoadInvocationListener<Q, R, E> listener : listeners) {
             listener.onSuccess(query, endpoint, result, duration);
         }
     }
 
     public void onFail(Q query, E endpoint, InvocationException e) {
+        loggerListener.onFail(query, endpoint, e);
         for (LoadInvocationListener<Q, R, E> listener : listeners) {
             listener.onFail(query, endpoint, e);
         }
     }
 
     public void onError(Q query, E endpoint, Throwable error) {
+        loggerListener.onError(query, endpoint, error);
         for (LoadInvocationListener<Q, R, E> listener : listeners) {
             listener.onError(query, endpoint, error);
         }

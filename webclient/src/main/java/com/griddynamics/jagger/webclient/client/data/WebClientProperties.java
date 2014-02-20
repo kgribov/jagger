@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class WebClientProperties implements Serializable {
 
     private boolean userCommentAvailable = false;
-    private int userCommentMaxLength = 250;
+    private int userCommentMaxLength = 1000;
 
     public boolean isUserCommentAvailable() {
         return userCommentAvailable;

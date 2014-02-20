@@ -17,55 +17,26 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package com.griddynamics.jagger.webclient.client.dto;
 
-package com.griddynamics.jagger.storage.rdb;
+import java.io.Serializable;
+import java.util.Map;
 
-import javax.persistence.*;
+public class NodeInfoDto implements Serializable {
 
-@Entity
-public class KeyValue {
-	private Long id;
+    private String nodeId;
+    private Map<String,String> parameters;
 
-	private String namespace;
+    public NodeInfoDto(String nodeId, Map<String, String> parameters) {
+        this.nodeId = nodeId;
+        this.parameters = parameters;
+    }
+    public NodeInfoDto() {}
 
-	private String key;
-	private byte[] data;
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-    @Column(name = "j4g_namespace")
-	public String getNamespace() {
-		return namespace;
-	}
-
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
-
-    @Column(name = "j4g_key")
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	@Lob
-	public byte[] getData() {
-		return data;
-	}
-
-	public void setData(byte[] data) {
-		this.data = data;
-	}
-
+    public String getNodeId() {
+        return nodeId;
+    }
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
 }
