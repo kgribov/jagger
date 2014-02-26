@@ -21,6 +21,7 @@ public abstract class AbstractInvokerStepDefinitionParser extends CustomBeanDefi
     @Override
     protected void parse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
         setBeanProperty(XMLConstants.QUERY_PROCESSOR_PROVIDER, DomUtils.getChildElementByTagName(element, XMLConstants.QUERY_PROCESSOR), parserContext, builder.getBeanDefinition());
+        setBeanProperty(XMLConstants.LISTENERS, DomUtils.getChildElementByTagName(element, XMLConstants.INVOCATION_LISTENERS), parserContext, builder.getBeanDefinition());
         builder.addPropertyValue(XMLConstants.INVOKER_WRAPPER, getInvokerWrapper(element, parserContext, builder));
     }
 

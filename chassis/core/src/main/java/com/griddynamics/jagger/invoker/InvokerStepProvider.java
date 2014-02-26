@@ -19,7 +19,7 @@ public class InvokerStepProvider implements Provider<InvokerStep>, ServicesIniti
 
     private InvokerWrapper invokerWrapper;
     private Provider<QueryProcessor> queryProcessorProvider = new DefaultQueryProcessorProvider();
-    private List<Provider<InvocationListener<Object, Object, Object>>> invocationListeners = Collections.EMPTY_LIST;
+    private List<Provider<InvocationListener<Object, Object, Object>>> listeners = Collections.EMPTY_LIST;
 
     public String getName() {
         return name;
@@ -36,8 +36,8 @@ public class InvokerStepProvider implements Provider<InvokerStep>, ServicesIniti
     public void setQueryProcessorProvider(Provider<QueryProcessor> queryProcessorProvider) {
         this.queryProcessorProvider = queryProcessorProvider;
     }
-    public void setInvocationListeners(List<Provider<InvocationListener<Object, Object, Object>>> invocationListeners) {
-        this.invocationListeners = invocationListeners;
+    public void setListeners(List<Provider<InvocationListener<Object, Object, Object>>> listeners) {
+        this.listeners = listeners;
     }
 
     @Override
@@ -72,13 +72,13 @@ public class InvokerStepProvider implements Provider<InvokerStep>, ServicesIniti
     @Override
     public void initServices(String sessionId, String taskId, NodeContext context, JaggerPlace jaggerPlace) {
         this.context = context;
-        for (Provider<InvocationListener<Object, Object, Object>> provider : invocationListeners){
+        for (Provider<InvocationListener<Object, Object, Object>> provider : listeners){
             ProviderUtil.injectContext(provider, sessionId, taskId, context, jaggerPlace);
         }
     }
 
     private Invoker createInvoker(){
-        List<InvocationListener<Object, Object, Object>> invokerListeners = ProviderUtil.provideElements(invocationListeners);
+        List<InvocationListener<Object, Object, Object>> invokerListeners = ProviderUtil.provideElements(listeners);
         InvocationListener composite = InvocationListener.Composer.compose(invokerListeners);
         return Invokers.listenableInvoker(invokerWrapper.getInvoker(context), composite, new JavaSystemClock());
     }
