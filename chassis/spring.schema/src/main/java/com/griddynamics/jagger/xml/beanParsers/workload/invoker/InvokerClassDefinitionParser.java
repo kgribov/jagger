@@ -30,4 +30,9 @@ public abstract class InvokerClassDefinitionParser extends CustomBeanDefinitionP
     }
 
     protected abstract String getInvokerClass();
+
+    @Override
+    protected boolean shouldGenerateId() {
+        return true;
+    }
 }

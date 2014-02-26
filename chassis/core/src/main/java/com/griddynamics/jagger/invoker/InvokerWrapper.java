@@ -1,22 +1,21 @@
 package com.griddynamics.jagger.invoker;
 
 import com.griddynamics.jagger.coordinator.NodeContext;
+import com.griddynamics.jagger.engine.e1.Provider;
+import com.griddynamics.jagger.engine.e1.ProviderUtil;
+import com.griddynamics.jagger.engine.e1.services.JaggerPlace;
+import com.griddynamics.jagger.engine.e1.services.ServicesInitializable;
 
 /**
  * Created by kgribov on 2/19/14.
  */
-public class InvokerWrapper<Q, R, E> {
+// need to use old configuration(invoker object per invoker class) and new
+public class InvokerWrapper<Q, R, E> implements ServicesInitializable{
     private Class<Invoker<Q, R, E>> invokerClazz;
-    private Invoker<Q, R, E> invokerObject;
-
-    private Invoker<Q, R, E> cachedInvoker;
+    private Provider<Invoker<Q, R, E>> invokerProvider;
 
     public Invoker<Q, R, E> getInvoker(NodeContext context){
-        if (cachedInvoker == null){
-            cachedInvoker = initInvoker(context);
-        }
-
-        return cachedInvoker;
+        return initInvoker(context);
     }
 
     private Invoker<Q, R, E> initInvoker(NodeContext context){
@@ -28,7 +27,7 @@ public class InvokerWrapper<Q, R, E> {
             }
             return context.getService(invokerClazz);
         }else{
-            return invokerObject;
+            return invokerProvider.provide();
         }
     }
 
@@ -36,7 +35,12 @@ public class InvokerWrapper<Q, R, E> {
         this.invokerClazz = invokerClazz;
     }
 
-    public void setInvokerObject(Invoker<Q, R, E> invokerObject) {
-        this.invokerObject = invokerObject;
+    public void setInvokerProvider(Provider<Invoker<Q, R, E>> invokerProvider) {
+        this.invokerProvider = invokerProvider;
+    }
+
+    @Override
+    public void initServices(String sessionId, String taskId, NodeContext context, JaggerPlace environment) {
+        ProviderUtil.injectContext(invokerProvider, sessionId, taskId, context, environment);
     }
 }

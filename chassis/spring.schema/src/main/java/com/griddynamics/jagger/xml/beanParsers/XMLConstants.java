@@ -124,7 +124,12 @@ public class XMLConstants {
     public static final String METHOD = "method";
     public static final String INVOKER = "invoker";
     public static final String INVOKER_CLAZZ = "invokerClazz";
+    public static final String INVOKER_PROVIDER = "invokerProvider";
     public static final String INVOKER_WRAPPER = "invokerWrapper";
+    public static final String QUERY_PROCESSOR_PROVIDER = "queryProcessorProvider";
+    public static final String QUERY_PROCESSOR = "query-processor";
+    public static final String STEP = "step";
+    public static final String STEPS_PROVIDERS = "stepsProviders";
     public static final String WARM_UP_TIME = "warmUpTime";
     public static final String ENDPOINT_PROVIDER = "endpointProvider";
     public static final String ENDPOINT_PROVIDER_ELEMENT = "endpoint-provider";

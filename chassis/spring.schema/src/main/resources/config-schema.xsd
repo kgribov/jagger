@@ -1142,6 +1142,72 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="invoker-steps">
+        <xsd:complexContent>
+            <xsd:extension base="invokerAbstract">
+                <xsd:choice>
+                    <xsd:element name="step" type="invokerStepAbstract" minOccurs="1" maxOccurs="unbounded"/>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="invokerStepAbstract" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="basicType">
+                <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="step-custom">
+        <xsd:complexContent>
+            <xsd:extension base="invokerStepAbstract">
+                <xsd:all>
+                    <xsd:element name="invoker" type="invokerAbstract" minOccurs="1"/>
+                    <xsd:element name="query-processor" type="queryProcessorAbstract" minOccurs="0"/>
+                    <xsd:element name="listeners-invocation" type="listenersInvocation" minOccurs="0"/>
+                </xsd:all>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="step-apache-http">
+        <xsd:complexContent>
+            <xsd:extension base="invokerStepAbstract">
+                <xsd:all>
+                    <xsd:element name="query-processor" type="queryProcessorAbstract" minOccurs="1"/>
+                    <xsd:element name="listeners-invocation" type="listenersInvocation" minOccurs="0"/>
+                </xsd:all>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="listenersInvocation">
+        <xsd:complexContent>
+            <xsd:extension base="basicType">
+                <xsd:choice>
+                    <xsd:element name="listener-invocation" type="listenerInvocationAbstract" minOccurs="1" maxOccurs="unbounded"/>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="queryProcessorAbstract" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="basicType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="query-processor-ref">
+        <xsd:complexContent>
+            <xsd:extension base="queryProcessorAbstract">
+                <xsd:attribute name="ref" type="xsd:string" use="required"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <!--*****************-->
     <!-- Query providers -->
     <!--*****************-->

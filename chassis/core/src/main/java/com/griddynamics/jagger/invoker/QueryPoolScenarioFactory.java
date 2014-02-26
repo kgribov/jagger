@@ -21,10 +21,12 @@
 package com.griddynamics.jagger.invoker;
 
 import com.griddynamics.jagger.coordinator.NodeContext;
+import com.griddynamics.jagger.engine.e1.services.JaggerPlace;
+import com.griddynamics.jagger.engine.e1.services.ServicesInitializable;
 import com.griddynamics.jagger.util.JavaSystemClock;
 import com.griddynamics.jagger.util.SystemClock;
 
-public class QueryPoolScenarioFactory<Q, R, E> implements ScenarioFactory<Q, R, E> {
+public class QueryPoolScenarioFactory<Q, R, E> implements ScenarioFactory<Q, R, E>, ServicesInitializable {
     private InvokerWrapper<Q, R, E> invokerWrapper;
     private QueryPoolLoadBalancer<Q, E> loadBalancer;
     private SystemClock systemClock = new JavaSystemClock();
@@ -90,5 +92,10 @@ public class QueryPoolScenarioFactory<Q, R, E> implements ScenarioFactory<Q, R, 
 
     public void setEndpointProvider(Iterable<E> endpointProvider) {
         this.endpointProvider = endpointProvider;
+    }
+
+    @Override
+    public void initServices(String sessionId, String taskId, NodeContext context, JaggerPlace environment) {
+        invokerWrapper.initServices(sessionId, taskId, context, environment);
     }
 }
