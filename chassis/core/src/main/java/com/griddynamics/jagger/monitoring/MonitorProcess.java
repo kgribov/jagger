@@ -67,6 +67,7 @@ public class MonitorProcess extends LogProcessor implements NodeProcess<Monitori
     private LogWriter logWriter;
     private CountDownLatch latch;
     private final Timeout ttl;
+    private final MonitoringProcessor oldMonitorProcessor;
 
     /*package*/ MonitorProcess(String sessionId, NodeId agentId, NodeContext nodeContext, Coordinator coordinator,
                                ExecutorService executor, long pollingInterval, long profilerPollingInterval,
@@ -84,6 +85,7 @@ public class MonitorProcess extends LogProcessor implements NodeProcess<Monitori
         this.profilerPollingInterval = profilerPollingInterval;
         this.setSessionFactory(sessionFactory);
         this.ttl = ttl;
+        this.oldMonitorProcessor = new OldLoggingMonitoringProcessor();
     }
 
     @Override
@@ -109,6 +111,7 @@ public class MonitorProcess extends LogProcessor implements NodeProcess<Monitori
                                     new Object[]{nodeContext.getId(), agentId, System.currentTimeMillis() - startTime});
                             for (SystemInfo systemInfo : info) {
                                 monitoringProcessor.process(sessionId, taskId, agentId, nodeContext, systemInfo);
+                                oldMonitorProcessor.process(sessionId, taskId, agentId, nodeContext, systemInfo);
                             }
                             log.debug("monitoring logged to file storage on kernel {}", nodeContext.getId());
                         } catch (Throwable e) {

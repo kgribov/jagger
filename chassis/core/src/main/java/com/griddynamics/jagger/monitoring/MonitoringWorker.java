@@ -21,6 +21,7 @@
 package com.griddynamics.jagger.monitoring;
 
 import com.google.common.collect.Maps;
+import com.griddynamics.jagger.agent.model.MonitoringParameter;
 import com.griddynamics.jagger.coordinator.*;
 import com.griddynamics.jagger.storage.fs.logging.LogWriter;
 import com.griddynamics.jagger.util.Nothing;
