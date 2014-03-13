@@ -4,6 +4,7 @@ import com.griddynamics.jagger.webclient.client.components.control.model.TestNod
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
+import java.util.Arrays;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +16,7 @@ public class TestNodeHandler extends TreeAwareHandler<TestNode> {
     public void onCheckChange(CheckChangeEvent<TestNode> event) {
 
         if (Tree.CheckState.CHECKED.equals(event.getChecked())) {
-            testInfoFetcher.fetchTestInfo(event.getItem().getTaskDataDto(), false);
+            testInfoFetcher.fetchTestInfo(Arrays.asList(event.getItem().getTaskDataDto()), false);
         } else {
             sessionComparisonPanel.removeTestInfo(event.getItem().getTaskDataDto());
         }

@@ -38,27 +38,12 @@ public class LatencyPlotDataProvider implements PlotDataProvider {
     }
 
     @Override
-    public List<PlotSeriesDto> getPlotData(long taskId, MetricNameDto plotName) {
-        checkArgument(taskId > 0, "taskId is not valid; it's lesser or equal 0");
-        checkNotNull(plotName, "plotName is null");
+    public List<PlotSeriesDto> getPlotData(MetricNameDto metricNameDto) {
+        Set<Long> taskIds = metricNameDto.getTaskIds();
 
-        TaskData taskData = entityManager.find(TaskData.class, taskId);
-        List<Object[]> rawData = findAllTimeInvocationStatisticsByTaskData(taskId);
-
-        if (rawData == null) {
-            return Collections.emptyList();
-        }
-
-        PlotSeriesDto plotSeriesDto = new PlotSeriesDto(assemble(rawData, taskData.getSessionId(), false), "Time, sec", "", legendProvider.generatePlotHeader(taskData, plotName.getMetricName()));
-
-        return Collections.singletonList(plotSeriesDto);
-    }
-
-    @Override
-    public List<PlotSeriesDto> getPlotData(Set<Long> taskIds, MetricNameDto plotName) {
         checkNotNull(taskIds, "taskIds is null");
         checkArgument(!taskIds.isEmpty(), "taskIds is empty");
-        checkNotNull(plotName, "plotName is null");
+        checkNotNull(metricNameDto, "metricNameDto is null");
 
         List<PlotDatasetDto> plotDatasetDtoList = new ArrayList<PlotDatasetDto>(taskIds.size());
         for (long taskId : taskIds) {
@@ -73,7 +58,7 @@ public class LatencyPlotDataProvider implements PlotDataProvider {
             plotDatasetDtoList.addAll(assemble(rawData, taskData.getSessionId(), true));
         }
 
-        return Collections.singletonList(new PlotSeriesDto(plotDatasetDtoList, "Time, sec", "", legendProvider.getPlotHeader(taskIds, plotName.getMetricName())));
+        return Collections.singletonList(new PlotSeriesDto(plotDatasetDtoList, "Time, sec", "", legendProvider.getPlotHeader(taskIds, metricNameDto.getMetricName())));
     }
 
     private List<PlotDatasetDto> assemble(List<Object[]> rawData, String sessionId, boolean addSessionPrefix) {

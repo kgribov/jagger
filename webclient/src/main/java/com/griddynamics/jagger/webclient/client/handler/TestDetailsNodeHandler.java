@@ -1,9 +1,9 @@
 package com.griddynamics.jagger.webclient.client.handler;
 
+import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.MonitoringPlotNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.PlotNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.TestDetailsNode;
-import com.griddynamics.jagger.webclient.client.dto.MetricNameDto;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
@@ -20,19 +20,17 @@ public class TestDetailsNodeHandler extends TreeAwareHandler<TestDetailsNode> {
     public void onCheckChange(CheckChangeEvent<TestDetailsNode> event) {
 
         TestDetailsNode testNode = event.getItem();
-        Set<MetricNameDto> dtos = new LinkedHashSet<MetricNameDto>();
+        Set<MetricNode> dtos = new LinkedHashSet<MetricNode>();
         for (PlotNode plotNode : testNode.getMetrics()) {
-            dtos.add(plotNode.getMetricNameDto());
+            dtos.add(plotNode);
         }
 
         for (MonitoringPlotNode monitoringPlotNode : testNode.getMonitoringPlots()) {
-            for (PlotNode plot: monitoringPlotNode.getPlots()) {
-                dtos.add(plot.getMetricNameDto());
-            }
+            dtos.addAll(monitoringPlotNode.getPlots());
         }
 
         if (Tree.CheckState.CHECKED.equals(event.getChecked())) {
-            testPlotFetcher.fetchPlots(dtos, true);
+            testPlotFetcher.fetchPlots(dtos);
         } else {
             testPlotFetcher.removePlots(dtos);
         }

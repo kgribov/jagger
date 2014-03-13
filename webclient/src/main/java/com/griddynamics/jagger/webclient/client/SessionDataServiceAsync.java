@@ -23,7 +23,5 @@ public interface SessionDataServiceAsync {
 
     void getBySessionIds(int start, int length, Set<String> sessionIds, AsyncCallback<PagedSessionDataDto> async);
 
-    void getTestInfo(TaskDataDto taskDataDto, AsyncCallback<Map<String, TestInfoDto>> async);
-
     void saveUserComment(Long sessionData_id, String userComment, AsyncCallback<Void> async);
 }

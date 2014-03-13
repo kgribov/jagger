@@ -23,7 +23,6 @@ public interface SessionDataService extends RemoteService {
     PagedSessionDataDto getByDatePeriod(int start, int length, Date from, Date to) throws RuntimeException;
     PagedSessionDataDto getBySessionIds(int start, int length, Set<String> sessionIds) throws RuntimeException;
     SessionDataDto getBySessionId(String sessionId) throws RuntimeException;
-    Map<String, TestInfoDto> getTestInfo(TaskDataDto taskDataDto) throws RuntimeException;
     void saveUserComment(Long sessionData_id, String userComment);
 
     public static class Async {

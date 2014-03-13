@@ -12,7 +12,10 @@ import com.griddynamics.jagger.webclient.server.LegendProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,30 +38,12 @@ public class ThroughputPlotDataProvider implements PlotDataProvider {
     }
 
     @Override
-    public List<PlotSeriesDto> getPlotData(long taskId, MetricNameDto plotName) {
-        checkArgument(taskId > 0, "taskId is not valid; it's lesser or equal 0");
-        checkNotNull(plotName, "metricName is null");
+    public List<PlotSeriesDto> getPlotData(MetricNameDto metricNameDto) {
+        Set<Long> taskIds = metricNameDto.getTaskIds();
 
-        List<Object[]> rawData = findAllTimeInvocationStatisticsByTaskData(taskId);
-
-        if (rawData == null) {
-            return Collections.emptyList();
-        }
-
-        TaskData taskData = entityManager.find(TaskData.class, taskId);
-        Set<PlotDatasetDto> plotSeries = new HashSet<PlotDatasetDto>();
-        plotSeries.add(assemble(rawData, taskData.getSessionId(), false));
-
-        PlotSeriesDto plotSeriesDto = new PlotSeriesDto(plotSeries, "Time, sec", "", legendProvider.generatePlotHeader(taskData, plotName.getMetricName()));
-
-        return Collections.singletonList(plotSeriesDto);
-    }
-
-    @Override
-    public List<PlotSeriesDto> getPlotData(Set<Long> taskIds, MetricNameDto plotName) {
         checkNotNull(taskIds, "taskIds is null");
         checkArgument(!taskIds.isEmpty(), "taskIds is empty");
-        checkNotNull(plotName, "metricName is null");
+        checkNotNull(metricNameDto, "metricNameDto is null");
 
         List<PlotDatasetDto> plotDatasetDtoList = new ArrayList<PlotDatasetDto>(taskIds.size());
         for (long taskId : taskIds) {
@@ -72,7 +57,7 @@ public class ThroughputPlotDataProvider implements PlotDataProvider {
             plotDatasetDtoList.add(assemble(rawData, taskData.getSessionId(), true));
         }
 
-        return Collections.singletonList(new PlotSeriesDto(plotDatasetDtoList, "Time, sec", "", legendProvider.getPlotHeader(taskIds, plotName.getMetricName())));
+        return Collections.singletonList(new PlotSeriesDto(plotDatasetDtoList, "Time, sec", "", legendProvider.getPlotHeader(taskIds, metricNameDto.getMetricName())));
     }
 
     @SuppressWarnings("unchecked")

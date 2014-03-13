@@ -9,12 +9,16 @@ import com.griddynamics.jagger.webclient.client.dto.TestInfoDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author "Artem Kirillov" (akirillov@griddynamics.com)
@@ -338,7 +342,6 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
     }
 
 
-
     private SessionDataDto createSessionDataDto(SessionData sessionData, String userComment) {
         return new SessionDataDto(
                 sessionData.getId(),
@@ -350,32 +353,5 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
                 sessionData.getTaskFailed(),
                 HTMLFormatter.format(sessionData.getComment()),
                 userComment);
-    }
-
-    @Override
-    public Map<String, TestInfoDto> getTestInfo(TaskDataDto taskDataDto) throws RuntimeException {
-
-        long temp = System.currentTimeMillis();
-        @SuppressWarnings("all")
-        List<Object[]> objectsList = (List<Object[]>)entityManager.createQuery(
-                "select wtd.sessionId, wtd.clock, wtd.clockValue, wtd.termination from WorkloadTaskData wtd " +
-                "   where (sessionId, taskId) in (" +
-                "       select td.sessionId, taskId from TaskData td where id in (:taskDataIds)" +
-                "                                 )")
-                .setParameter("taskDataIds", taskDataDto.getIds())
-                .getResultList();
-        log.debug("Time spent for testInfo fetching for test {} : {}ms", new Object[]{taskDataDto.toString(), System.currentTimeMillis() - temp});
-
-        Map<String, TestInfoDto> resultMap = new HashMap<String, TestInfoDto>(objectsList.size());
-
-        for (Object[] objects : objectsList) {
-            String clock = objects[1] + " (" + objects[2] + ')';
-            TestInfoDto testInfo = new TestInfoDto();
-            testInfo.setClock(clock);
-            testInfo.setTermination((String)objects[3]);
-            resultMap.put((String)objects[0], testInfo);
-        }
-
-        return resultMap;
     }
 }

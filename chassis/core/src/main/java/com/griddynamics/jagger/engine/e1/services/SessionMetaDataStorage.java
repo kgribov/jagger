@@ -2,8 +2,9 @@ package com.griddynamics.jagger.engine.e1.services;
 
 import com.griddynamics.jagger.engine.e1.aggregator.session.model.TagEntity;
 
-import java.util.*;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 

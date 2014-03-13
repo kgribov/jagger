@@ -11,6 +11,9 @@ import java.util.Set;
  */
 public class MetricNameDto extends MetricName {
 
+    // Describes origin of this metric - location in DB where data for this metric ca be taken from
+    // Will be used when fetching data from DB to select correct provider of data
+    private Origin origin = Origin.UNKNOWN;
     private TaskDataDto test;
 
     public MetricNameDto(){}
@@ -25,11 +28,10 @@ public class MetricNameDto extends MetricName {
         this.test = test;
     }
 
-    public long getTaskId() {
-        if (test.getIds() == null || test.getIds().size() != 1) {
-            throw new UnsupportedOperationException("Cannot return id because of ids is null or its size is not equal 1");
-        }
-        return test.getIds().iterator().next();
+    public MetricNameDto(TaskDataDto test, String metricName, String metricDisplayName, Origin origin) {
+        super(metricName,metricDisplayName);
+        this.test = test;
+        this.origin = origin;
     }
 
     public Set<Long> getTaskIds() {
@@ -42,6 +44,14 @@ public class MetricNameDto extends MetricName {
 
     public void setTest(TaskDataDto test) {
         this.test = test;
+    }
+
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
     }
 
     @Override
@@ -70,5 +80,17 @@ public class MetricNameDto extends MetricName {
         int result = test != null ? test.hashCode() : 0;
         result = 31 * result + (metricName != null ? metricName.hashCode() : 0);
         return result;
+    }
+
+    public static enum Origin {
+        UNKNOWN,                      /* default value - will produce errors during fetching */
+        METRIC,                       /* custom metric */
+        LATENCY,
+        THROUGHPUT,
+        LATENCY_PERCENTILE,
+        DURATION,
+        STANDARD_METRICS,             /* success rate, iterations, etc */
+        MONITORING,                    /* monitoring parameters saved in separate DB table */
+        VALIDATOR
     }
 }

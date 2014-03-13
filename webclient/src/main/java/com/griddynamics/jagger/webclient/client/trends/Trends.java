@@ -36,10 +36,7 @@ import com.google.gwt.user.client.ui.*;
 import com.google.gwt.user.datepicker.client.DateBox;
 import com.google.gwt.view.client.*;
 import com.griddynamics.jagger.webclient.client.*;
-import com.griddynamics.jagger.webclient.client.components.ControlTree;
-import com.griddynamics.jagger.webclient.client.components.ExceptionPanel;
-import com.griddynamics.jagger.webclient.client.components.NodesPanel;
-import com.griddynamics.jagger.webclient.client.components.SummaryPanel;
+import com.griddynamics.jagger.webclient.client.components.*;
 import com.griddynamics.jagger.webclient.client.components.control.CheckHandlerMap;
 import com.griddynamics.jagger.webclient.client.components.control.SimpleNodeValueProvider;
 import com.griddynamics.jagger.webclient.client.components.control.model.*;
@@ -275,7 +272,9 @@ public class Trends extends DefaultActivity {
                     List<String> trends = new ArrayList<String>();
                     for (PlotNode plotNode : test.getMetrics()) {
                         if (controlTree.isChecked(plotNode)) {
-                            trends.add(plotNode.getMetricNameDto().getMetricName());
+                            for (MetricNameDto metricNameDto : plotNode.getMetricNameDtoList()) {
+                                trends.add(metricNameDto.getMetricName());
+                            }
                         }
                     }
                     for (MonitoringPlotNode monitoringPlotNode : test.getMonitoringPlots()) {
@@ -284,7 +283,9 @@ public class Trends extends DefaultActivity {
                         } else if (controlTree.isChosen(monitoringPlotNode)) {
                             for (PlotNode plotNode : monitoringPlotNode.getPlots()) {
                                 if (controlTree.isChecked(plotNode)) {
-                                    trends.add(plotNode.getMetricNameDto().getMetricName());
+                                    for (MetricNameDto metricNameDto : plotNode.getMetricNameDtoList()) {
+                                        trends.add(metricNameDto.getMetricName());
+                                    }
                                 }
                             }
                         }
@@ -1108,9 +1109,11 @@ public class Trends extends DefaultActivity {
                         } else {
                             tempTree.setExpanded(testNode, true);
                             for (MetricNode metricNode : testNode.getMetrics()) {
-                                if (testsMetrics.getMetrics().contains(metricNode.getMetricNameDto().getMetricName())) {
-                                    tempTree.setCheckedExpandedWithParent(metricNode);
-                                    needTestInfo = true;
+                                for (MetricNameDto metricNameDto : metricNode.getMetricNameDtoList()) {
+                                    if (testsMetrics.getMetrics().contains(metricNameDto.getMetricName())) {
+                                        tempTree.setCheckedExpandedWithParent(metricNode);
+                                        needTestInfo = true;
+                                    }
                                 }
                             }
                             if (needTestInfo) {
@@ -1124,8 +1127,10 @@ public class Trends extends DefaultActivity {
                         new ExceptionPanel("could not find Test with test name \'" + testsMetrics.getTestName() + "\' for details");
                     } else {
                         for (PlotNode plotNode : testDetailsNode.getMetrics()) {
-                            if (testsMetrics.getTrends().contains(plotNode.getMetricNameDto().getMetricName())) {
-                                tempTree.setCheckedExpandedWithParent(plotNode);
+                            for (MetricNameDto metricNameDto : plotNode.getMetricNameDtoList()) {
+                                if (testsMetrics.getTrends().contains(metricNameDto.getMetricName())) {
+                                    tempTree.setCheckedExpandedWithParent(plotNode);
+                                }
                             }
                         }
                         for (MonitoringPlotNode monitoringPlotNode : testDetailsNode.getMonitoringPlots()) {
@@ -1134,8 +1139,10 @@ public class Trends extends DefaultActivity {
                                 tempTree.setExpanded(testDetailsNode, true, false);
                             } else {
                                 for (PlotNode plotNode: monitoringPlotNode.getPlots()) {
-                                    if (testsMetrics.getTrends().contains(plotNode.getMetricNameDto().getMetricName())) {
-                                        tempTree.setCheckedExpandedWithParent(plotNode);
+                                    for (MetricNameDto metricNameDto : plotNode.getMetricNameDtoList()) {
+                                        if (testsMetrics.getTrends().contains(metricNameDto.getMetricName())) {
+                                            tempTree.setCheckedExpandedWithParent(plotNode);
+                                        }
                                     }
                                 }
                             }
@@ -1249,15 +1256,19 @@ public class Trends extends DefaultActivity {
         }
 
         private void fetchPlotsForTests() {
-            testPlotFetcher.fetchPlots(controlTree.getCheckedPlots(), true);
+            testPlotFetcher.fetchPlots(controlTree.getCheckedPlots());
         }
 
         private void fetchMetricsForTests(List<TestNode> testNodes) {
+
+            List<TaskDataDto> taskDataDtos = new ArrayList<TaskDataDto>();
             for (TestNode testNode : testNodes) {
                 if (controlTree.isChecked(testNode.getTestInfo())) {
-                    testInfoFetcher.fetchTestInfo(testNode.getTaskDataDto(), false);
+                    taskDataDtos.add(testNode.getTaskDataDto());
                 }
             }
+
+            testInfoFetcher.fetchTestInfo(taskDataDtos, false);
             metricFetcher.fetchMetrics(controlTree.getCheckedMetrics(), false);
         }
 
@@ -1291,7 +1302,14 @@ public class Trends extends DefaultActivity {
         private void addToStore(TreeStore<AbstractIdentifyNode> store, AbstractIdentifyNode node, AbstractIdentifyNode parent) {
             store.add(parent, node);
             for (AbstractIdentifyNode child : node.getChildren()) {
-                addToStore(store, child, node);
+
+                try {
+                    addToStore(store, child, node);
+                }
+                catch (AssertionError e) {
+                    new ExceptionPanel(place, "Was not able to insert node with id '" + child.getId() + "' and name '"
+                            + child.getDisplayName() + "' into control tree. Id is already in use. Error message:\n" + e.getMessage());
+                }
             }
         }
     }
@@ -1304,9 +1322,9 @@ public class Trends extends DefaultActivity {
 
 
     public class TestInfoFetcher {
-        public void fetchTestInfo(final TaskDataDto taskDataDto, final boolean enableTree) {
+        public void fetchTestInfo(final Collection<TaskDataDto> taskDataDtos, final boolean enableTree) {
 
-            SessionDataService.Async.getInstance().getTestInfo(taskDataDto, new AsyncCallback<Map<String, TestInfoDto>>() {
+            TestInfoService.Async.getInstance().getTestInfos(taskDataDtos, new AsyncCallback<Map<TaskDataDto, Map<String, TestInfoDto>>>() {
                 @Override
                 public void onFailure(Throwable caught) {
                     caught.printStackTrace();
@@ -1316,8 +1334,11 @@ public class Trends extends DefaultActivity {
                 }
 
                 @Override
-                public void onSuccess(Map<String, TestInfoDto> result) {
-                    summaryPanel.getSessionComparisonPanel().addTestInfo(taskDataDto, result);
+                public void onSuccess(Map<TaskDataDto, Map<String, TestInfoDto>> result) {
+                    SessionComparisonPanel scp =  summaryPanel.getSessionComparisonPanel();
+                    for (TaskDataDto td : result.keySet()) {
+                        scp.addTestInfo(td, result.get(td));
+                    }
                     if (enableTree)
                         enableControl();
                 }
@@ -1441,56 +1462,42 @@ public class Trends extends DefaultActivity {
 
     public class TestPlotFetcher extends PlotsServingBase {
 
-
-        /**
-         * Fetch selected plots
-         * @param selected plotNames to fetch and render
-         * @param enableTree tells return control or not
-         */
-        public void fetchPlots(Set<MetricNameDto> selected, final boolean enableTree) {
-
-            if (selected.isEmpty()) {
-                if (enableTree)
-                    enableControl();
+        public void fetchPlots(Set<MetricNode> selectedNodes) {
+            if (selectedNodes.isEmpty()) {
+                enableControl();
             } else {
                 disableControl();
-                PlotProviderService.Async.getInstance().getPlotDatas(selected, new AsyncCallback<Map<MetricNameDto, List<PlotSeriesDto>>>() {
+
+                PlotProviderService.Async.getInstance().getPlotData(selectedNodes, new AsyncCallback<Map<MetricNode, PlotSeriesDto>>() {
 
                     @Override
                     public void onFailure(Throwable caught) {
 
                         caught.printStackTrace();
                         new ExceptionPanel(place, caught.toString());
-                        if (enableTree)
-                            enableControl();
+                        enableControl();
                     }
 
                     @Override
-                    public void onSuccess(Map<MetricNameDto, List<PlotSeriesDto>> result) {
-                        for (MetricNameDto metricNameDto : result.keySet()){
+                    public void onSuccess(Map<MetricNode, PlotSeriesDto> result) {
+                        for (MetricNode metricNode : result.keySet()) {
                             final String id;
                             // Generate DOM id for plot
-                            if (metricNameDto.getTest() == null) {
-                                id = generateSessionScopePlotId(chosenSessions.get(0), metricNameDto.getMetricName());
-                            } else if (chosenSessions.size() == 1) {
-                                id = generateTaskScopePlotId(metricNameDto);
-                            } else {
-                                id = generateCrossSessionsTaskScopePlotId(metricNameDto);
-                            }
+                            // metricNode.Id - is unique key
+                            id = generatePlotId(metricNode);
 
                             // If plot has already displayed, then pass it
                             if (chosenPlots.containsKey(id)) {
                                 continue;
                             }
 
-                            chosenPlots.put(id, result.get(metricNameDto));
+                            chosenPlots.put(id, Arrays.asList(result.get(metricNode)));
 
                         }
                         if (mainTabPanel.getSelectedIndex() == tabMetrics.getTabIndex()) {
                             onMetricsTabSelected();
                         }
-                        if (enableTree)
-                            enableControl();
+                        enableControl();
                     }
                 });
             }
@@ -1498,16 +1505,19 @@ public class Trends extends DefaultActivity {
 
         /**
          * Removes plots
-         * @param plotNames plotNames to remove
+         * @param metricNodes metricNodes to remove
          */
-        public void removePlots(Set<MetricNameDto> plotNames) {
+        public void removePlots(Set<MetricNode> metricNodes) {
 
-            if (plotNames.isEmpty()) {
+            if (metricNodes.isEmpty()) {
                 return;
             }
 
             List<Widget> toRemove = new ArrayList<Widget>();
-            Set<String> widgetIds = generateTaskPlotIds(plotNames, chosenSessions.size());
+            Set<String> widgetIds = new HashSet<String>();
+            for (MetricNode metricNode : metricNodes) {
+                widgetIds.add(generatePlotId(metricNode));
+            }
             for (int i = 0; i < plotPanel.getWidgetCount(); i++) {
                 Widget widget = plotPanel.getWidget(i);
                 String widgetId = widget.getElement().getId();
@@ -1519,31 +1529,6 @@ public class Trends extends DefaultActivity {
                 chosenPlots.remove(w.getElement().getId());
             }
         }
-
-        public void fetchPlot(MetricNameDto selected, final boolean enableTree) {
-            Set<MetricNameDto> selectedSet = new HashSet<MetricNameDto>();
-            selectedSet.add(selected);
-            fetchPlots(selectedSet, enableTree);
-        }
-
-        public void removePlot(MetricNameDto metricNameDto) {
-            Set<MetricNameDto> setToRemove = new HashSet<MetricNameDto>();
-            setToRemove.add(metricNameDto);
-            removePlots(setToRemove);
-        }
-
-        private Set<String> generateTaskPlotIds(Set<MetricNameDto> selected, int size) {
-            HashSet<String> idSet = new HashSet<String>();
-            for (MetricNameDto plotName : selected) {
-                if (size == 1) {
-                    idSet.add(generateTaskScopePlotId(plotName));
-                } else {
-                    idSet.add(generateCrossSessionsTaskScopePlotId(plotName));
-                }
-            }
-            return idSet;
-        }
-
     }
 
     /**

@@ -1,31 +1,27 @@
-package com.griddynamics.jagger.webclient.server;
+package com.griddynamics.jagger.webclient.server.rules;
 
 import com.griddynamics.jagger.webclient.client.components.control.model.MetricGroupNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
-import com.griddynamics.jagger.webclient.client.mvp.NameTokens;
+import com.griddynamics.jagger.webclient.client.dto.MetricNameDto;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-public class TreeViewGroupRule {
+public class TreeViewGroupRule extends Rule{
 
     public TreeViewGroupRule(String id, String displayName, String rule) {
-        this.id = id;
-        this.displayName = displayName;
-        this.rule = rule;
+        super(id,displayName,rule);
     }
     public TreeViewGroupRule(String id, String displayName, String rule, List<TreeViewGroupRule> children) {
-        this.id = id;
-        this.displayName = displayName;
-        this.rule = rule;
-        this.children = sortByDisplayName(children);
-    }
-    public TreeViewGroupRule(String id, String displayName, List<TreeViewGroupRule> children) {
-        this.id = id;
-        this.displayName = displayName;
-        this.children = sortByDisplayName(children);
+        super(id,displayName,rule);
+
+        // remove duplicates and sort
+        List<TreeViewGroupRule> temp = removeDuplicates(By.ID,children);
+        this.children = sort(By.DISPLAY_NAME, temp);
     }
 
-    public <M extends MetricNode> MetricGroupNode<M> filter(NameTokens.FilterOptions filterBy, String parentId, List<M> metricNodeList) {
+    public <M extends MetricNode> MetricGroupNode<M> filter(By by, String parentId, List<M> metricNodeList) {
         MetricGroupNode<M> result = new MetricGroupNode<M>(displayName);
         boolean returnResult = false;
 
@@ -37,7 +33,8 @@ public class TreeViewGroupRule {
         }
         else {
             // depth of tree is not limited => be careful with long id. They will concatenate
-            id = parentId + "_" + this.id;
+            // G goes for group
+            id = parentId + "G_" + this.id;
         }
 
         // unique Id for metric group
@@ -47,7 +44,7 @@ public class TreeViewGroupRule {
         List<MetricGroupNode> metricGroupNodeListFromChildren = new ArrayList<MetricGroupNode>();
         if (children != null) {
             for (TreeViewGroupRule child : children) {
-                MetricGroupNode childResult = child.filter(filterBy,id,metricNodeList);
+                MetricGroupNode childResult = child.filter(by,id,metricNodeList);
                 if (childResult != null) {
                     metricGroupNodeListFromChildren.add(childResult);
                 }
@@ -67,15 +64,20 @@ public class TreeViewGroupRule {
 
                 // match
                 String metric;
-                if (filterBy == NameTokens.FilterOptions.BY_DISPLAY_NAME) {
-                    metric = metricNode.getMetricNameDto().getMetricDisplayName();
-                }
-                else {
-                    metric = metricNode.getMetricNameDto().getMetricName();
-                }
-                if (metric.matches(rule)) {
-                    metricsPerRule.add(metricNode);
-                    i.remove();
+                // node can contain more than single metric
+                // current strategy: if at least one metric match => add node to group
+                for (MetricNameDto metricNameDto : metricNode.getMetricNameDtoList()) {
+                    if (by == By.DISPLAY_NAME) {
+                        metric = metricNameDto.getMetricDisplayName();
+                    }
+                    else {
+                        metric = metricNameDto.getMetricName();
+                    }
+                    if (metric.matches(rule)) {
+                        metricsPerRule.add(metricNode);
+                        i.remove();
+                        break;
+                    }
                 }
             }
             if (metricsPerRule.size() > 0) {
@@ -92,37 +94,10 @@ public class TreeViewGroupRule {
         }
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getRule() {
-        return rule;
-    }
-
     public List<TreeViewGroupRule> getChildren() {
         return children;
     }
 
-    private List<TreeViewGroupRule> sortByDisplayName(List<TreeViewGroupRule> metricGroupRuleList) {
-        Collections.sort(metricGroupRuleList, new Comparator<TreeViewGroupRule>() {
-            @Override
-            public int compare(TreeViewGroupRule o1, TreeViewGroupRule o2) {
-                int res = String.CASE_INSENSITIVE_ORDER.compare(o1.getDisplayName(), o2.getDisplayName());
-                return (res != 0) ? res : o1.getDisplayName().compareTo(o2.getDisplayName());
-            }
-        });
-
-        return metricGroupRuleList;
-    }
-
-    private String id;
-    private String displayName;
-    private String rule = null;
     private List<TreeViewGroupRule> children = null;
 
 }

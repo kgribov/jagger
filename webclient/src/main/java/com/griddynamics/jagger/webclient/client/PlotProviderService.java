@@ -3,7 +3,7 @@ package com.griddynamics.jagger.webclient.client;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import com.griddynamics.jagger.webclient.client.dto.MetricNameDto;
+import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
 import com.griddynamics.jagger.webclient.client.dto.PlotSeriesDto;
 import com.griddynamics.jagger.webclient.client.dto.SessionPlotNameDto;
 
@@ -19,11 +19,7 @@ import java.util.Set;
 @RemoteServiceRelativePath("rpc/PlotProviderService")
 public interface PlotProviderService extends RemoteService {
 
-    List<PlotSeriesDto> getPlotData(long taskId, MetricNameDto plotType) throws RuntimeException;
-
-    List<PlotSeriesDto> getPlotData(Set<Long> taskId, MetricNameDto plotType) throws RuntimeException;
-
-    Map<MetricNameDto, List<PlotSeriesDto>> getPlotDatas(Set<MetricNameDto> plots) throws RuntimeException;
+    Map<MetricNode, PlotSeriesDto> getPlotData(Set<MetricNode> plots) throws RuntimeException;
 
     Map<SessionPlotNameDto, List<PlotSeriesDto>> getSessionScopePlotData(String sessionId, Collection<SessionPlotNameDto> plotType) throws RuntimeException;
 
