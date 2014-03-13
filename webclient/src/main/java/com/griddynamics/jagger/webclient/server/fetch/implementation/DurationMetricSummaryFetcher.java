@@ -55,7 +55,7 @@ public class DurationMetricSummaryFetcher extends SummaryDbMetricDataFetcher {
             }
             MetricNameDto metricNameDto = metricIdMap.get(DURATION_METRIC_ID);
             if (metricNameDto == null) {
-                throw new IllegalArgumentException("could not find appropriate MetricDto : " + taskId.longValue());
+                continue;
             }
 
             if (!resultMap.containsKey(metricNameDto)) {

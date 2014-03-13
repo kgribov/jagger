@@ -109,6 +109,7 @@ public class MetricDataServiceImpl implements MetricDataService {
         } catch (Throwable th) {
             th.printStackTrace();
             log.error("Exception while summary retrieving", th);
+            throw new RuntimeException("Exception while summary retrieving" + th.getMessage());
         }
         log.debug("{} ms spent for fetching summary data for {} metrics", System.currentTimeMillis() - temp, metricNames.size());
 

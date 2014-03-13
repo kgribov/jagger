@@ -50,6 +50,9 @@ public class ValidatorSummaryFetcher extends SummaryDbMetricDataFetcher {
             MetricNameDto metricNameDto;
             try {
                 metricNameDto = mappedMetricDtos.get(taskId.longValue()).get(metricId);
+                if (metricNameDto == null) {   // means that we fetched data that we had not wanted to fetch
+                    continue;
+                }
             } catch (NullPointerException e) {
                 throw new IllegalArgumentException("could not find appropriate MetricDto : " + taskId);
             }
