@@ -62,16 +62,18 @@ public class MonitorProcess extends LogProcessor implements NodeProcess<Monitori
     private final long pollingInterval;
     private final long profilerPollingInterval;
     private final MonitoringProcessor monitoringProcessor;
+    private final MonitoringProcessor oldMonitoringProcessor;
     private final String taskId;
     private volatile boolean alive;
     private LogWriter logWriter;
     private CountDownLatch latch;
     private final Timeout ttl;
+    private final String origin;
 
     /*package*/ MonitorProcess(String sessionId, NodeId agentId, NodeContext nodeContext, Coordinator coordinator,
                                ExecutorService executor, long pollingInterval, long profilerPollingInterval,
                                MonitoringProcessor monitoringProcessor, String taskId, LogWriter logWriter,
-                               SessionFactory sessionFactory, Timeout ttl) {
+                               SessionFactory sessionFactory, Timeout ttl, String origin, MonitoringProcessor oldMonitoringProcessor) {
         this.sessionId = sessionId;
         this.agentId = agentId;
         this.nodeContext = nodeContext;
@@ -84,6 +86,8 @@ public class MonitorProcess extends LogProcessor implements NodeProcess<Monitori
         this.profilerPollingInterval = profilerPollingInterval;
         this.setSessionFactory(sessionFactory);
         this.ttl = ttl;
+        this.origin = origin;
+        this.oldMonitoringProcessor = oldMonitoringProcessor;
     }
 
     @Override
@@ -109,6 +113,7 @@ public class MonitorProcess extends LogProcessor implements NodeProcess<Monitori
                                     new Object[]{nodeContext.getId(), agentId, System.currentTimeMillis() - startTime});
                             for (SystemInfo systemInfo : info) {
                                 monitoringProcessor.process(sessionId, taskId, agentId, nodeContext, systemInfo);
+                                oldMonitoringProcessor.process(sessionId, origin, agentId, nodeContext, systemInfo);
                             }
                             log.debug("monitoring logged to file storage on kernel {}", nodeContext.getId());
                         } catch (Throwable e) {

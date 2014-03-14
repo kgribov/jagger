@@ -135,10 +135,6 @@ public class BasicAggregator extends HibernateDaoSupport implements Distribution
 
     @Override
     public void onTaskDistributionCompleted(String sessionId, String taskId, Task task) {
-        if (task instanceof MonitoringTask){
-            return;
-        }
-
         log.debug("onTaskFinished invoked {} {}", sessionId, taskId);
         persistData(sessionId, taskId, task);
     }

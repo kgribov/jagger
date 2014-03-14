@@ -27,12 +27,14 @@ public class StartMonitoring implements Command<String> {
     private String sessionId;
     private NodeId agentNode;
     private String taskId;
+    private String origin;
 
-    public static StartMonitoring create(String sessionId, NodeId agentNode, String taskId) {
+    public static StartMonitoring create(String sessionId, NodeId agentNode, String taskId, String origin) {
         StartMonitoring command = new StartMonitoring();
         command.sessionId = sessionId;
         command.agentNode = agentNode;
         command.taskId = taskId;
+        command.origin = origin;
         return command;
     }
 
@@ -59,5 +61,13 @@ public class StartMonitoring implements Command<String> {
 
     public void setTaskId(String taskId) {
         this.taskId = taskId;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 }

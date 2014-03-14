@@ -46,6 +46,7 @@ public class MonitoringWorker extends ConfigurableWorker {
     private long pollingInterval;
     private long profilerPollingInterval;
     private MonitoringProcessor monitoringProcessor;
+    private MonitoringProcessor oldMonitorProcessor;
 
     private LogWriter logWriter;
     private Map<String, MonitorProcess> processes = Maps.newConcurrentMap();
@@ -64,7 +65,7 @@ public class MonitoringWorker extends ConfigurableWorker {
             public String execute(StartMonitoring command, NodeContext nodeContext) {
                 MonitorProcess process = new MonitorProcess(command.getSessionId(), command.getAgentNode(),
                         nodeContext, coordinator, executor, pollingInterval, profilerPollingInterval, monitoringProcessor, command.getTaskId(),
-                        logWriter, sessionFactory, ttl);
+                        logWriter, sessionFactory, ttl, command.getOrigin(), oldMonitorProcessor);
 
                 String processId = generateProcessId();
                 processes.put(processId, process);
@@ -156,5 +157,13 @@ public class MonitoringWorker extends ConfigurableWorker {
 
     public Timeout getTtl() {
         return ttl;
+    }
+
+    public MonitoringProcessor getOldMonitorProcessor() {
+        return oldMonitorProcessor;
+    }
+
+    public void setOldMonitorProcessor(MonitoringProcessor oldMonitorProcessor) {
+        this.oldMonitorProcessor = oldMonitorProcessor;
     }
 }

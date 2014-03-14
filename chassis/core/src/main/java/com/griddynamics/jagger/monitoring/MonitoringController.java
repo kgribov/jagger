@@ -39,8 +39,9 @@ public class MonitoringController {
     private Map<String, NodeId> agentMapping = Maps.newHashMap();
     private final Collection<NodeId> capableNodes;
     private final long ttl;
+    private final String origin;
 
-    public MonitoringController(String sessionId, String taskId, Multimap<NodeType, NodeId> availableNodes,
+    public MonitoringController(String sessionId, String taskId, String origin, Multimap<NodeType, NodeId> availableNodes,
                                 Coordinator coordinator, Collection<NodeId> capableNodes, long ttl) {
         this.sessionId = sessionId;
         this.taskId = taskId;
@@ -48,6 +49,7 @@ public class MonitoringController {
         this.coordinator = coordinator;
         this.capableNodes = capableNodes;
         this.ttl = ttl;
+        this.origin = origin;
     }
 
     public void startMonitoring() {
@@ -69,7 +71,7 @@ public class MonitoringController {
 
             log.info("Agent {} will be monitored by kernel {}", agent, kernel);
             log.debug("Start monitoring command is sending");
-            String processId = remote.runSyncWithTimeout(StartMonitoring.create(sessionId, agent, taskId),
+            String processId = remote.runSyncWithTimeout(StartMonitoring.create(sessionId, agent, taskId, origin),
                     Coordination.<StartMonitoring>doNothing(), ttl * 2);
             log.debug("Start monitoring command is sent. Process with id {} started", processId);
 

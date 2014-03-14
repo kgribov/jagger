@@ -54,9 +54,14 @@
         <property name="logWriter" ref="bufferedLogWriter"/>
         <property name="sessionFactory" ref="sessionFactory"/>
         <property name="ttl" ref="monitoringWorkerTimeout"/>
+        <property name="oldMonitorProcessor" ref="oldMonitorProcessor"/>
     </bean>
 
     <bean id="loggingMonitoringProcessor" class="com.griddynamics.jagger.monitoring.LoggingMonitoringProcessor"/>
+
+    <bean id="oldMonitorProcessor" class="com.griddynamics.jagger.monitoring.OldMonitoringProcessor">
+        <property name="logWriter" ref="bufferedLogWriter"/>
+    </bean>
 
     <bean id="monitoringExecutor" class="com.griddynamics.jagger.util.ConfigurableExecutor">
         <property name="corePoolSize" value="${chassis.monitoring.executor.pool.core}"/>
