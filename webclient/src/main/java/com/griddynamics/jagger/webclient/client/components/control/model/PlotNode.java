@@ -1,7 +1,5 @@
 package com.griddynamics.jagger.webclient.client.components.control.model;
 
-import com.griddynamics.jagger.webclient.client.dto.MetricNameDto;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -12,10 +10,6 @@ import java.util.List;
  */
 // Completely repeats MetricNode, but will be handled by different handler in tree
 public class PlotNode extends MetricNode {
-
-    public PlotNode (MetricNameDto metricName) {
-        super(metricName);
-    }
 
     public PlotNode() {
         super();

@@ -3,7 +3,6 @@ package com.griddynamics.jagger.webclient.client.handler;
 import com.griddynamics.jagger.webclient.client.components.control.model.MetricGroupNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.PlotNode;
-import com.griddynamics.jagger.webclient.client.dto.MetricNameDto;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
@@ -30,15 +29,14 @@ public class MetricGroupNodeHandler extends TreeAwareHandler<MetricGroupNode> {
 
             if (event.getItem().getMetrics().get(0).getClass() == PlotNode.class) {
                 MetricGroupNode<PlotNode> testNode = event.getItem();
-                Set<MetricNameDto> dtos = new LinkedHashSet<MetricNameDto>();
-                for (PlotNode plotNode : testNode.getMetrics()) {
-                    dtos.add(plotNode.getMetricNameDto());
-                }
+
+                Set<MetricNode> nodes = new LinkedHashSet<MetricNode>();
+                nodes.addAll(testNode.getMetrics());
 
                 if (Tree.CheckState.CHECKED.equals(event.getChecked())) {
-                    testPlotFetcher.fetchPlots(dtos, true);
+                    testPlotFetcher.fetchPlots(nodes);
                 } else {
-                    testPlotFetcher.removePlots(dtos);
+                    testPlotFetcher.removePlots(nodes);
                 }
             }
 

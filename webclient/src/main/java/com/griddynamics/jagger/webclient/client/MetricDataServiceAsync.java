@@ -14,6 +14,5 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public interface MetricDataServiceAsync {
-    void getMetric(MetricNameDto metricName, AsyncCallback<MetricDto> async);
     void getMetrics(List<MetricNameDto> metricNames, AsyncCallback<List<MetricDto>> async);
 }

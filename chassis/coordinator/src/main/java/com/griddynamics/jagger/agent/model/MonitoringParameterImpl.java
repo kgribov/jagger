@@ -78,6 +78,12 @@ public class MonitoringParameterImpl implements MonitoringParameter, Serializabl
     }
 
     @Override
+    public String getId() {
+        // in current implementation there is no way to set id for custom jmx metrics
+        return description;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

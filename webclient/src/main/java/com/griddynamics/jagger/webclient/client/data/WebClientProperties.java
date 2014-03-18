@@ -5,13 +5,10 @@ import java.io.Serializable;
 public class WebClientProperties implements Serializable {
 
     private boolean tagsAvailable = false;
+    private boolean tagsStoreAvailable = false;
     private boolean userCommentEditAvailable = false;
     private boolean userCommentStoreAvailable = false;
     private boolean showOnlyMatchedTests = true;
-
-
-
-
     private int userCommentMaxLength = 1000;
 
     public boolean isTagsAvailable() {
@@ -44,6 +41,14 @@ public class WebClientProperties implements Serializable {
 
     public void setUserCommentMaxLength(int userCommentMaxLength) {
         this.userCommentMaxLength = userCommentMaxLength;
+    }
+
+    public boolean isTagsStoreAvailable() {
+        return tagsStoreAvailable;
+    }
+
+    public void setTagsStoreAvailable(boolean tagsStoreAvailable) {
+        this.tagsStoreAvailable = tagsStoreAvailable;
     }
 
     public boolean isShowOnlyMatchedTests() {

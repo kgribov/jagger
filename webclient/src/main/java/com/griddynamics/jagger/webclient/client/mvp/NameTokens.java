@@ -37,9 +37,4 @@ public class NameTokens {
     public static String trends() {
         return TRENDS;
     }
-
-    public static enum FilterOptions {
-        BY_ID,
-        BY_DISPLAY_NAME
-    }
 }

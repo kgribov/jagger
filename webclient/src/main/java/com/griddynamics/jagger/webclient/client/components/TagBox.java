@@ -1,18 +1,20 @@
 package com.griddynamics.jagger.webclient.client.components;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor.Path;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
+import com.griddynamics.jagger.webclient.client.SessionDataService;
+import com.griddynamics.jagger.webclient.client.dto.SessionDataDto;
 import com.griddynamics.jagger.webclient.client.dto.TagDto;
 import com.griddynamics.jagger.webclient.client.resources.JaggerResources;
 import com.sencha.gxt.core.client.ValueProvider;
-import com.sencha.gxt.data.shared.*;
+import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.GridDropTarget;
@@ -20,11 +22,13 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.RowMouseDownEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class TagBox extends AbstractWindow implements IsWidget {
@@ -49,6 +53,7 @@ public class TagBox extends AbstractWindow implements IsWidget {
 
     private TreeGrid<SessionComparisonPanel.TreeItem> treeGrid;
 
+    private SessionDataDto currentSession;
 
     interface TagDtoProperties extends PropertyAccess<TagDto> {
         @Path("name")
@@ -213,9 +218,10 @@ public class TagBox extends AbstractWindow implements IsWidget {
     }
 
 
-    void popUp(String sessionId, SessionComparisonPanel.TreeItem item, List<TagDto> allTags, List<TagDto> sessionTags) {
-        setText(sessionId);
-        setGrids(allTags, sessionTags);
+    void popUp(SessionDataDto currentSession, SessionComparisonPanel.TreeItem item, List<TagDto> allTags, List<TagDto> sessionTags) {
+        this.currentSession=currentSession;
+        setText("Session " +currentSession.getSessionId());
+        setGrids(allTags, currentSession.getTags());
         currentTreeItem = item;
         show();
     }
@@ -241,7 +247,6 @@ public class TagBox extends AbstractWindow implements IsWidget {
         currentTreeItem.put(getText(), tags);
         treeGrid.getTreeView().refresh(false);
         saveTagToDataBase();
-        atClose();
     }
 
     @Override
@@ -258,6 +263,8 @@ public class TagBox extends AbstractWindow implements IsWidget {
     }
 
     private void move(Grid<TagDto> gridFrom, Grid<TagDto> gridTo){
+        if (gridFrom.getSelectionModel().getSelectedItems().isEmpty())
+            return;
         List<TagDto> selectedList = gridFrom.getSelectionModel().getSelectedItems();
         gridFrom.getSelectionModel().selectNext(false);
         descriptionPanel.setText(gridFrom.getSelectionModel().getSelectedItem().getDescription());
@@ -286,15 +293,40 @@ public class TagBox extends AbstractWindow implements IsWidget {
     public void setGrids(List<TagDto> allTags, List<TagDto> sessionTags) {
         gridStorageL.getStore().addAll(allTags);
         gridStorageR.getStore().addAll(sessionTags);
-        sessionTagsDB = sessionTags;
-        for (int i = 0; i < gridStorageR.getStore().size(); i++) {
-            gridStorageL.getStore().remove(gridStorageR.getStore().get(i));
+        for(TagDto tag : allTags) {
+            for (int i=0; i<gridStorageR.getStore().size();i++){
+                if(gridStorageR.getStore().get(i).equals(tag))
+                    gridStorageL.getStore().remove(tag);
+            }
         }
     }
 
-    public void saveTagToDataBase() {
-        sessionTagsDB.clear();
-        sessionTagsDB.addAll(gridStorageR.getStore().getAll());
+    private void saveTagToDataBase() {
+       final List <TagDto> list = new ArrayList<TagDto>();
+        list.addAll(gridStorageR.getStore().getAll());
+        SessionDataService.Async.getInstance().saveTags(currentSession.getId(), list, new AsyncCallback<Void>() {
+
+            @Override
+            public void onFailure(Throwable caught) {
+                atClose();
+                new ExceptionPanel("Fail to save into DB session's tags : " + caught.getMessage());
+            }
+
+            @Override
+            public void onSuccess(Void result) {
+                currentSession.getTags().clear();
+                currentSession.setTags(list);
+
+                String tags = "";
+                for (TagDto tagDto: currentSession.getTags()) {
+                    tags += tagDto.getName() + " ";
+
+                }
+                currentTreeItem.put(getText(), tags);
+                treeGrid.getTreeView().refresh(false);
+                atClose();
+            }
+        });
     }
 
     private void buttonInitialization() {

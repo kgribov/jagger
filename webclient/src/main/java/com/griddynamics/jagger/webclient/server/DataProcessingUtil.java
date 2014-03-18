@@ -5,6 +5,7 @@ import com.griddynamics.jagger.webclient.client.dto.PointDto;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class DataProcessingUtil {
     protected DataProcessingUtil() {
     }
 
-    public static List<PointDto> convertFromRawDataToPointDto(List<Object[]> rawData, int xIdx, int yIdx) {
+    public static List<PointDto> convertFromRawDataToPointDto(Collection<Object[]> rawData, int xIdx, int yIdx) {
         if (rawData == null) {
             throw new IllegalArgumentException("rawData is null");
         }

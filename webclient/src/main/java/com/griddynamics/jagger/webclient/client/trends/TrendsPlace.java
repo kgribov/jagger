@@ -1,6 +1,5 @@
 package com.griddynamics.jagger.webclient.client.trends;
 
-import com.griddynamics.jagger.webclient.client.dto.TestsMetrics;
 import com.griddynamics.jagger.webclient.client.mvp.AbstractPlaceHistoryMapper;
 import com.griddynamics.jagger.webclient.client.mvp.PlaceWithParameters;
 

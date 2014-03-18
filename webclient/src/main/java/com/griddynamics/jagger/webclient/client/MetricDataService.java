@@ -29,6 +29,5 @@ public interface MetricDataService extends RemoteService {
         }
     }
 
-    public MetricDto getMetric( MetricNameDto metricName) throws RuntimeException;
     public List<MetricDto> getMetrics(List<MetricNameDto> metricNames) throws RuntimeException;
 }

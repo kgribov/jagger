@@ -29,4 +29,7 @@ public interface CommonDataProvider {
     Map<TaskDataDto,List<PlotNode>> getTestPlotsMap(Set<String> sessionIds, List<TaskDataDto> taskList);
 
     boolean checkIfUserCommentStorageAvailable();
+
+    boolean checkIfTagsStorageAvailable();
+
 }

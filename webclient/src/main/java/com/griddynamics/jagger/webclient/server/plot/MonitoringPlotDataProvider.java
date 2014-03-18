@@ -60,21 +60,6 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
     //==========================
 
     /**
-     * Returns list of PlotSeriesDto for given task ID and plot name
-     *
-     * @param taskId   task ID
-     * @param plotName plot name
-     * @return list of PlotSeriesDto
-     * @see PlotSeriesDto
-     */
-    @Override
-    public List<PlotSeriesDto> getPlotData(long taskId, MetricNameDto plotName) {
-        Set<Long> taskIds = new HashSet<Long>();
-        taskIds.add(taskId);
-        return getPlotData(taskIds, plotName);
-    }
-
-    /**
      * Returns list of PlotSeriesDto for given session ID and plot name
      *
      * @param sessionId session ID
@@ -153,18 +138,20 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
     }
 
     @Override
-    public List<PlotSeriesDto> getPlotData(Set<Long> taskIds, MetricNameDto plotName) {
+    public List<PlotSeriesDto> getPlotData(MetricNameDto metricNameDto) {
+        Set<Long> taskIds = metricNameDto.getTaskIds();
+
         checkNotNull(taskIds, "taskIds is null");
         checkArgument(!taskIds.isEmpty(), "taskIds is empty");
-        checkNotNull(plotName, "plotName is null");
+        checkNotNull(metricNameDto, "metricNameDto is null");
 
-        String metricId =  plotName.getMetricName();
+        String metricId =  metricNameDto.getMetricName();
         String monitoringKey = metricId.substring(0, metricId.indexOf(AGENT_NAME_SEPARATOR));
         String agentIdentifier = metricId.substring(metricId.indexOf(AGENT_NAME_SEPARATOR) + AGENT_NAME_SEPARATOR.length());
 
         DefaultMonitoringParameters[] defaultMonitoringParametersGroup = findDefaultMonitoringParameters(monitoringPlotGroups, monitoringKey);
         List<String> monitoringParametersList = assembleDefaultMonitoringParametersDescriptions(defaultMonitoringParametersGroup);
-        log.debug("For plot {} there are exist {} monitoring parameters", plotName, defaultMonitoringParametersGroup);
+        log.debug("For plot {} there are exist {} monitoring parameters", metricNameDto, defaultMonitoringParametersGroup);
 
         Map<String, Map<String, List<MonitoringStatistics>>> finalComposedMap = new HashMap<String, Map<String, List<MonitoringStatistics>>>();
         for (long taskId : taskIds) {
