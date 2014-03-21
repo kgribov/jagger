@@ -1,7 +1,5 @@
 package com.griddynamics.jagger.webclient.server;
 
-import com.griddynamics.jagger.engine.e1.aggregator.session.model.TaskData;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
@@ -44,11 +42,6 @@ public class LegendProvider {
 
         return builder.toString();
     }
-
-    public String generatePlotHeader(TaskData taskData, String plotName) {
-        return generatePlotHeader(taskData.getSessionId(), taskData.getTaskName(), plotName);
-    }
-
 
     //============================
     //===========Auxiliary Methods

@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -52,7 +52,7 @@ public class ChronologyLogAggregator implements LogAggregator {
 
     @Override
     public AggregationInfo chronology(String dir, String targetFile) throws IOException {
-        log.info("Try to aggregate {} into file {}", dir, targetFile);
+        log.info("Aggregate {}", targetFile);
         Collection<Iterable<LogEntry>> readers = new ArrayList<Iterable<LogEntry>>();
         Set<String> fileNameList = fileStorage.getFileNameList(dir);
         if (fileNameList.isEmpty()) {

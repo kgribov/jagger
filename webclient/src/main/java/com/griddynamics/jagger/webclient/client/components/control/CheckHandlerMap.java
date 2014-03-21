@@ -23,10 +23,8 @@ public class CheckHandlerMap {
             {
                 put(SummaryNode.class, new SummaryNodeHandler());
                 put(SessionInfoNode.class, new SessionInfoNodeHandler());
-                put(SessionInfoLeaf.class, new SessionInfoLeafHandler());
                 put(TestNode.class, new TestNodeHandler());
                 put(TestInfoNode.class, new TestInfoNodeHandler());
-                put(TestInfoLeaf.class, new TestInfoLeafHandler());
                 put(MetricNode.class, new MetricNodeHandler());
                 put(MetricGroupNode.class, new MetricGroupNodeHandler());
 
@@ -35,7 +33,6 @@ public class CheckHandlerMap {
                 put(TestDetailsNode.class, new TestDetailsNodeHandler());
                 put(PlotNode.class, new PlotNodeHandler());
                 put(SessionPlotNode.class, new SessionPlotNodeHandler());
-                put(MonitoringPlotNode.class, new MonitoringPlotNodeHandler());
                 put(MonitoringSessionScopePlotNode.class, new MonitoringSessionScopePlotNodeHandler());
             }
         };

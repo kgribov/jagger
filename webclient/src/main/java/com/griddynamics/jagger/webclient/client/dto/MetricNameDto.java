@@ -85,6 +85,7 @@ public class MetricNameDto extends MetricName {
     public static enum Origin {
         UNKNOWN,                      /* default value - will produce errors during fetching */
         METRIC,                       /* custom metric */
+        TEST_GROUP_METRIC,            /* custom test-group metric */
         LATENCY,
         THROUGHPUT,
         LATENCY_PERCENTILE,

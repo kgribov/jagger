@@ -12,9 +12,16 @@ public class Rule {
     protected String id;
     protected String displayName;
     protected String rule = null;
+    protected By filterBy = By.ID;
 
     public Rule() {}
     public Rule(String id, String displayName, String rule) {
+        this.id = id;
+        this.displayName = displayName;
+        this.rule = rule;
+    }
+    public Rule(By filterBy, String id, String displayName, String rule) {
+        this.filterBy = filterBy;
         this.id = id;
         this.displayName = displayName;
         this.rule = rule;
@@ -30,6 +37,10 @@ public class Rule {
 
     public String getRule() {
         return rule;
+    }
+
+    public By getFilterBy() {
+        return filterBy;
     }
 
     protected <M extends Rule> List<M> sort(final By by, List<M> inputList) {

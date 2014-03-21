@@ -30,6 +30,7 @@ public class MetricDataServiceImpl implements MetricDataService {
     private DurationMetricSummaryFetcher durationMetricSummaryFetcher;
     private LatencyMetricSummaryFetcher latencyMetricDataFetcher;
     private CustomMetricSummaryFetcher customMetricSummaryFetcher;
+    private CustomTestGroupMetricSummaryFetcher customTestGroupMetricSummaryFetcher;
     private ValidatorSummaryFetcher validatorSummaryFetcher;
 
     public void setThreadPool(ExecutorService threadPool) {
@@ -56,6 +57,10 @@ public class MetricDataServiceImpl implements MetricDataService {
         this.validatorSummaryFetcher = validatorSummaryFetcher;
     }
 
+    public void setCustomTestGroupMetricSummaryFetcher(CustomTestGroupMetricSummaryFetcher customTestGroupMetricSummaryFetcher) {
+        this.customTestGroupMetricSummaryFetcher = customTestGroupMetricSummaryFetcher;
+    }
+
     @Override
     public List<MetricDto> getMetrics(List<MetricNameDto> metricNames) {
 
@@ -77,6 +82,9 @@ public class MetricDataServiceImpl implements MetricDataService {
                     break;
                 case METRIC:
                     fetchMap.put(customMetricSummaryFetcher, metricName);
+                    break;
+                case TEST_GROUP_METRIC:
+                    fetchMap.put(customTestGroupMetricSummaryFetcher, metricName);
                     break;
                 case VALIDATOR:
                     fetchMap.put(validatorSummaryFetcher, metricName);

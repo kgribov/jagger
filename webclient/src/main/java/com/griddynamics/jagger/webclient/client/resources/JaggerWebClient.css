@@ -202,7 +202,6 @@ input[type="text"] {
 }
 
 .toolBar {
-    margin: 0 0 2px 0;
     padding: 0;
     background-color: #F6F6F6;
     border-bottom: 1px dotted #E8E6E5;
@@ -214,7 +213,26 @@ input[type="text"] {
 }
 
 .toolBar img {
+    font: normal 11px arial;
     cursor: pointer;
+    resize: none;
+}
+
+.searchTabPanel{
+    font: normal 11px arial;
+    border-spacing: 0;
+
+    color : black;
+    background-color: #F6F6F6;
+    vertical-align: middle;
+
+}
+
+.searchPanel{
+    font: normal 11px arial;
+    border: 0;
+    background-color: #F6F6F6;
+    color: #000000;
 }
 
 .gwt-CheckBox label {

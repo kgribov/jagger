@@ -19,6 +19,7 @@ public abstract class AbstractWindow extends DialogBox {
     protected int height = 500;
     private TextButton saveButton;
     private TextButton cancelButton;
+    private TextButton applyButton;
     private final int PIXELS_BETWEEN_BUTTONS = 10;
 
 
@@ -43,6 +44,15 @@ public abstract class AbstractWindow extends DialogBox {
             }
         });
 
+        applyButton = new TextButton("Apply");
+        applyButton.setPixelSize(60, 22);
+        applyButton.getElement().setMargins(new Margins(0,0,0,0));
+        applyButton.addSelectHandler(new SelectEvent.SelectHandler() {
+            @Override
+            public void onSelect(SelectEvent selectEvent) {
+                onApplyButtonClick();
+            }
+        });
 
         cancelButton = new TextButton("Cancel");
         cancelButton.setPixelSize(60, 22);
@@ -59,14 +69,27 @@ public abstract class AbstractWindow extends DialogBox {
     protected HorizontalPanel getDefaultButtonBar(){
         HorizontalPanel saveAndCancelButtonBar = new HorizontalPanel();
         saveAndCancelButtonBar.setSpacing(5);
+        saveAndCancelButtonBar.add(applyButton);
         saveAndCancelButtonBar.add(saveButton);
         saveAndCancelButtonBar.add(cancelButton);
         return saveAndCancelButtonBar;
     }
 
+    protected TextButton getSaveButton() {
+        return saveButton;
+    }
+
+    protected TextButton getCancelButton() {
+        return cancelButton;
+    }
+
+    protected TextButton getApplyButton() {
+        return applyButton;
+    }
+
     protected abstract void onSaveButtonClick();
     protected abstract void onCancelButtonClick();
-
+    protected abstract void onApplyButtonClick();
 
 
 

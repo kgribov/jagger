@@ -109,7 +109,7 @@ public class MonitoringAggregator extends LogProcessor implements DistributionLi
                 return;
             }
 
-            int intervalSize = intervalSizeProvider.getIntervalSize(aggregationInfo.getMaxTime(), aggregationInfo.getMinTime());
+            int intervalSize = intervalSizeProvider.getIntervalSize(aggregationInfo.getMinTime(),aggregationInfo.getMaxTime());
             if (intervalSize < 1) {
                 intervalSize = 1;
             }
@@ -223,7 +223,7 @@ public class MonitoringAggregator extends LogProcessor implements DistributionLi
         while (logEntry.getTime() > currentInterval) {
             if (!countByIntervalAgent.isEmpty() || !countByIntervalSuT.isEmpty()) {
 
-                long time = currentInterval - aggregationInfo.getMinTime() + extendedInterval.get() / 2;
+                long time = currentInterval - aggregationInfo.getMinTime() - extendedInterval.get() / 2;
                 finalizeIntervalSysInfo(sessionId, taskData,
                         time,
                         sumByIntervalAgent, countByIntervalAgent, avgStatisticsByAgent);

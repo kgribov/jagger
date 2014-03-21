@@ -203,12 +203,6 @@ public class ControlTree<C> extends Tree <AbstractIdentifyNode, C> {
         setDisabled(false);
     }
 
-    public void enable(boolean enableTree) {
-        if (enableTree) {
-            enable();
-        }
-    }
-
     public void enableTree() {
         this.enable();
         this.enableEvents();
@@ -292,13 +286,6 @@ public class ControlTree<C> extends Tree <AbstractIdentifyNode, C> {
             for (PlotNode plotNode : test.getMetrics()) {
                 if (isChecked(plotNode)) {
                     resultSet.add(plotNode);
-                }
-            }
-            for (MonitoringPlotNode monitoringPlotNode : test.getMonitoringPlots()) {
-                for (PlotNode plotNode : monitoringPlotNode.getPlots()) {
-                    if (isChecked(plotNode)) {
-                        resultSet.add(plotNode);
-                    }
                 }
             }
         }

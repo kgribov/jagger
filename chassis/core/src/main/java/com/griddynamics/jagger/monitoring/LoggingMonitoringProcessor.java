@@ -27,10 +27,13 @@ import com.griddynamics.jagger.agent.model.SystemInfo;
 import com.griddynamics.jagger.agent.model.SystemUnderTestInfo;
 import com.griddynamics.jagger.coordinator.NodeContext;
 import com.griddynamics.jagger.coordinator.NodeId;
-import com.griddynamics.jagger.engine.e1.collector.*;
+import com.griddynamics.jagger.engine.e1.collector.AvgMetricAggregatorProvider;
+import com.griddynamics.jagger.engine.e1.collector.CumulativeMetricAggregatorProvider;
+import com.griddynamics.jagger.engine.e1.collector.MetricAggregatorProvider;
+import com.griddynamics.jagger.engine.e1.collector.MetricDescription;
 import com.griddynamics.jagger.engine.e1.services.DefaultMetricService;
 import com.griddynamics.jagger.engine.e1.services.MetricService;
-import com.griddynamics.jagger.util.AgentUtils;
+import com.griddynamics.jagger.util.MonitoringIdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,18 +58,26 @@ public class LoggingMonitoringProcessor implements MonitoringProcessor {
             metricServiceMap.put(serviceId, new DefaultMetricService(sessionId, taskId, nodeContext));
         }
 
+        long timeStamp = systemInfo.getTime();
+
         // save sigar metrics
-        saveMonitoringValues(serviceId, agentId.getIdentifier(), systemInfo.getSysInfo());
+        saveMonitoringValues(serviceId, agentId.getIdentifier(), systemInfo.getSysInfo(), timeStamp);
 
         // save jmx metrics
-        for (Map.Entry<String, SystemUnderTestInfo> entry : systemInfo.getSysUnderTest().entrySet()){
-            saveMonitoringValues(serviceId, entry.getKey(), entry.getValue().getSysUTInfo());
+        if (systemInfo.getSysUnderTest() != null){
+            for (Map.Entry<String, SystemUnderTestInfo> entry : systemInfo.getSysUnderTest().entrySet()){
+                saveMonitoringValues(serviceId, entry.getKey(), entry.getValue().getSysUTInfo(), timeStamp);
+            }
         }
 
         log.trace("System info {} received from agent {} and has been written to FileStorage", systemInfo, agentId);
     }
 
-    private void saveMonitoringValues(String serviceId, String agentId, Map<MonitoringParameter, Double> values){
+    private void saveMonitoringValues(String serviceId, String agentId, Map<MonitoringParameter, Double> values, long time){
+        if (values == null){
+            return;
+        }
+
         MetricService service = metricServiceMap.get(serviceId);
 
         for (Map.Entry<MonitoringParameter, Double> entry : values.entrySet()){
@@ -75,13 +86,13 @@ public class LoggingMonitoringProcessor implements MonitoringProcessor {
 
             // save value
             String metricId = getMetricId(serviceId, monitoringParameter, agentId);
-            service.saveValue(metricId, value);
+            service.saveValue(metricId, value, time);
         }
     }
 
     // return metric id for current monitoring parameter
     private String getMetricId(String serviceId, MonitoringParameter monitoringParameter, String agentId){
-        String metricId = AgentUtils.getMonitoringMetricId(monitoringParameter.getId(), agentId);
+        String metricId = MonitoringIdUtils.getMonitoringMetricId(monitoringParameter.getId(), agentId);
 
         // register metric aggregators
         if (!createdMetrics.contains(serviceId, metricId)){
@@ -89,8 +100,7 @@ public class LoggingMonitoringProcessor implements MonitoringProcessor {
             if (!monitoringParameter.isCumulativeCounter()){
                 aggregator = new AvgMetricAggregatorProvider();
             }else{
-                // todo : set correct aggregator
-                aggregator = new SumMetricAggregatorProvider();
+                aggregator = new CumulativeMetricAggregatorProvider();
             }
 
             metricServiceMap.get(serviceId).createMetric(new MetricDescription(metricId)

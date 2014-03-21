@@ -13,8 +13,11 @@ public class TreeViewGroupMetricsToNodeRule extends Rule {
     public TreeViewGroupMetricsToNodeRule(String id, String displayName, String rule) {
         super(id,displayName,rule);
     }
+    public TreeViewGroupMetricsToNodeRule(By filterBy, String id, String displayName, String rule) {
+        super(filterBy,id,displayName,rule);
+    }
 
-    public <M extends MetricNode> List<M> filter(By by, String parentId, List<M> metricNodeList) {
+    public <M extends MetricNode> List<M> filter(String parentId, List<M> metricNodeList) {
 
         List<M> result = new ArrayList<M>();
         M resultMetricNode = null;
@@ -29,7 +32,7 @@ public class TreeViewGroupMetricsToNodeRule extends Rule {
             // node can contain more than single metric
             // current strategy: if at least one metric match => take it
             for (MetricNameDto metricNameDto : metricNode.getMetricNameDtoList()) {
-                if (by == By.DISPLAY_NAME) {
+                if (filterBy == By.DISPLAY_NAME) {
                     metric = metricNameDto.getMetricDisplayName();
                 }
                 else {
@@ -73,12 +76,12 @@ public class TreeViewGroupMetricsToNodeRule extends Rule {
         }
 
         @Override
-        public <M extends MetricNode> List<M> filter(By by, String parentId, List<M> metricNodeList) {
+        public <M extends MetricNode> List<M> filter(String parentId, List<M> metricNodeList) {
             List<M> result = new ArrayList<M>();
 
             List<M> tempResult;
             for (TreeViewGroupMetricsToNodeRule rule : treeViewGroupMetricsToNodeRules) {
-                tempResult = rule.filter(by,parentId,metricNodeList);
+                tempResult = rule.filter(parentId,metricNodeList);
                 if (tempResult != null) {
                     result.addAll(tempResult);
                 }

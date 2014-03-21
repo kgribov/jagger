@@ -18,12 +18,12 @@ import java.util.List;
  */
 public class MetricRankingProvider {
     private static List<RegExp> patterns = Arrays.asList(
-            RegExp.compile("Iterations"),
-            RegExp.compile("Duration"),
-            RegExp.compile("Throughput"),
-            RegExp.compile("Success rate"),
-            RegExp.compile("Latency"),
-            RegExp.compile("Time Latency Percentile")
+            RegExp.compile("^Iterations"),
+            RegExp.compile("^Duration"),
+            RegExp.compile("^Throughput"),
+            RegExp.compile("^Success rate"),
+            RegExp.compile("^Latency"),
+            RegExp.compile("^Time Latency Percentile")
     );
 
     protected static int compare(String o1, String o2){

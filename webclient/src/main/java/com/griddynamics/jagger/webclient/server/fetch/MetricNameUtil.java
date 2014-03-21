@@ -29,6 +29,24 @@ public class MetricNameUtil {
         return taskIdMap;
     }
 
+    /**
+     * Map Collection of MetricNameDto first of all by TaskDataDto id, after all by metric name (metric id)
+     * @param metricNameDtos collection of MetricNameDto to be mapped
+     * @return Map <TaskDataDto.id, MetricNameDto>
+     */
+    public static Map<Long, MetricNameDto> getMappedMetricDtosByTaskIds(Collection<MetricNameDto> metricNameDtos) {
+        Map<Long, MetricNameDto> taskIdMap = new HashMap<Long, MetricNameDto>();
+        for (MetricNameDto metricName : metricNameDtos) {
+            Set<Long> ids = metricName.getTaskIds();
+            for (Long id : ids) {
+                if (!taskIdMap.containsKey(id)) {
+                    taskIdMap.put(id, metricName);
+                }
+            }
+        }
+        return taskIdMap;
+    }
+
     public static String getLatencyMetricName(double latencyKey) {
         return "Latency " + latencyKey + " %";
     }

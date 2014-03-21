@@ -1,5 +1,9 @@
 package com.griddynamics.jagger.webclient.client.components;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor.Path;
 import com.google.gwt.event.logical.shared.CloseEvent;
@@ -11,10 +15,9 @@ import com.griddynamics.jagger.webclient.client.SessionDataService;
 import com.griddynamics.jagger.webclient.client.dto.SessionDataDto;
 import com.griddynamics.jagger.webclient.client.dto.TagDto;
 import com.griddynamics.jagger.webclient.client.resources.JaggerResources;
+import com.griddynamics.jagger.webclient.client.trends.TrendsPlace;
 import com.sencha.gxt.core.client.ValueProvider;
-import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
-import com.sencha.gxt.data.shared.PropertyAccess;
+import com.sencha.gxt.data.shared.*;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.GridDropTarget;
@@ -27,9 +30,6 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class TagBox extends AbstractWindow implements IsWidget {
 
@@ -41,8 +41,6 @@ public class TagBox extends AbstractWindow implements IsWidget {
 
     private ListStore<TagDto> storeFrom;
     private ListStore<TagDto> storeTo;
-
-    private List<TagDto> sessionTagsDB;
 
     private final boolean ADD_NEW = true;
 
@@ -78,7 +76,6 @@ public class TagBox extends AbstractWindow implements IsWidget {
         descriptionPanel.setReadOnly(true);
         descriptionPanel.setStyleName(JaggerResources.INSTANCE.css().descriptionPanel());
         descriptionPanel.setPixelSize(width, 70);
-
 
 
         allRight.addSelectHandler(new SelectEvent.SelectHandler() {
@@ -212,17 +209,30 @@ public class TagBox extends AbstractWindow implements IsWidget {
 
     }
 
-
     public void setTreeGrid(TreeGrid<SessionComparisonPanel.TreeItem> treeGrid) {
         this.treeGrid = treeGrid;
     }
 
 
-    void popUp(SessionDataDto currentSession, SessionComparisonPanel.TreeItem item, List<TagDto> allTags, List<TagDto> sessionTags) {
-        this.currentSession=currentSession;
-        setText("Session " +currentSession.getSessionId());
+    public void popUpForEdit(SessionDataDto currentSession, SessionComparisonPanel.TreeItem item, List<TagDto> allTags) {
+        if (currentSession == null) {
+            new ExceptionPanel("The session data has a value null. The session's id is wrong.");
+        }
+        getApplyButton().removeFromParent();
+        this.currentSession = currentSession;
+        setText("Session " + currentSession.getSessionId());
         setGrids(allTags, currentSession.getTags());
         currentTreeItem = item;
+        show();
+    }
+
+    private Set<String> tagNamesSet;
+
+    public void popUpForFilter(List<TagDto> allTags, Set<String> sessionTags) {
+        getSaveButton().removeFromParent();
+        tagNamesSet = sessionTags;
+        setText("Session filter by tags");
+        setGrids(allTags);
         show();
     }
 
@@ -239,14 +249,17 @@ public class TagBox extends AbstractWindow implements IsWidget {
 
     @Override
     protected void onSaveButtonClick() {
-        String tags = "";
-        for (int i = 0; i < storeTo.size(); i++) {
-            tags += storeTo.get(i).getName() + " ";
-
-        }
-        currentTreeItem.put(getText(), tags);
         treeGrid.getTreeView().refresh(false);
         saveTagToDataBase();
+    }
+
+    @Override
+    protected void onApplyButtonClick() {
+        tagNamesSet.clear();
+        for (int i = 0; i < storeTo.size(); i++) {
+            tagNamesSet.add(storeTo.get(i).getName());
+        }
+        atClose();
     }
 
     @Override
@@ -256,13 +269,13 @@ public class TagBox extends AbstractWindow implements IsWidget {
 
     private void onButtonOne(boolean action) {
         if (action) {
-            move(gridStorageL,gridStorageR);
+            move(gridStorageL, gridStorageR);
         } else {
-            move(gridStorageR,gridStorageL);
+            move(gridStorageR, gridStorageL);
         }
     }
 
-    private void move(Grid<TagDto> gridFrom, Grid<TagDto> gridTo){
+    private void move(Grid<TagDto> gridFrom, Grid<TagDto> gridTo) {
         if (gridFrom.getSelectionModel().getSelectedItems().isEmpty())
             return;
         List<TagDto> selectedList = gridFrom.getSelectionModel().getSelectedItems();
@@ -272,11 +285,13 @@ public class TagBox extends AbstractWindow implements IsWidget {
         gridTo.getSelectionModel().deselectAll();
         gridTo.getStore().addAll(selectedList);
 
-        for(int i = 0; i < selectedList.size(); i++) {
+        for (int i = 0; i < selectedList.size(); i++) {
             gridFrom.getStore().remove(selectedList.get(i));
         }
+
     }
-    private void moveAll(Grid<TagDto> gridFrom, Grid<TagDto> gridTo){
+
+    private void moveAll(Grid<TagDto> gridFrom, Grid<TagDto> gridTo) {
         gridTo.getStore().addAll(gridFrom.getStore().getAll());
         gridFrom.getStore().clear();
         descriptionPanel.setText(DEFAULT_TITLE);
@@ -284,45 +299,49 @@ public class TagBox extends AbstractWindow implements IsWidget {
 
     private void onButtonAll(boolean action) {
         if (action) {
-            moveAll(gridStorageL,gridStorageR);
+            moveAll(gridStorageL, gridStorageR);
         } else {
-            moveAll(gridStorageR,gridStorageL);
+            moveAll(gridStorageR, gridStorageL);
         }
     }
 
     public void setGrids(List<TagDto> allTags, List<TagDto> sessionTags) {
         gridStorageL.getStore().addAll(allTags);
         gridStorageR.getStore().addAll(sessionTags);
-        for(TagDto tag : allTags) {
-            for (int i=0; i<gridStorageR.getStore().size();i++){
-                if(gridStorageR.getStore().get(i).equals(tag))
+        for (TagDto tag : allTags) {
+            for (int i = 0; i < gridStorageR.getStore().size(); i++) {
+                if (gridStorageR.getStore().get(i).equals(tag))
                     gridStorageL.getStore().remove(tag);
             }
         }
     }
 
+    public void setGrids(List<TagDto> allTags) {
+        gridStorageL.getStore().addAll(allTags);
+    }
+
     private void saveTagToDataBase() {
-       final List <TagDto> list = new ArrayList<TagDto>();
+        final List<TagDto> list = new ArrayList<TagDto>();
         list.addAll(gridStorageR.getStore().getAll());
         SessionDataService.Async.getInstance().saveTags(currentSession.getId(), list, new AsyncCallback<Void>() {
 
             @Override
             public void onFailure(Throwable caught) {
-                atClose();
                 new ExceptionPanel("Fail to save into DB session's tags : " + caught.getMessage());
+                atClose();
             }
 
             @Override
             public void onSuccess(Void result) {
-                currentSession.getTags().clear();
-                currentSession.setTags(list);
-
                 String tags = "";
-                for (TagDto tagDto: currentSession.getTags()) {
-                    tags += tagDto.getName() + " ";
-
+                for (int i = 0; i < storeTo.size(); i++) {
+                    if (i == storeTo.size() - 1)
+                        tags += storeTo.get(i).getName();
+                    else
+                        tags += storeTo.get(i).getName() + ", ";
                 }
                 currentTreeItem.put(getText(), tags);
+                currentSession.setTags(list);
                 treeGrid.getTreeView().refresh(false);
                 atClose();
             }
@@ -345,7 +364,7 @@ public class TagBox extends AbstractWindow implements IsWidget {
         allLeft.setPixelSize(40, 15);
     }
 
-    private void atClose(){
+    private void atClose() {
         gridStorageL.getStore().clear();
         gridStorageR.getStore().clear();
         descriptionPanel.setText(DEFAULT_TITLE);

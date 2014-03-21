@@ -7,8 +7,6 @@ import com.griddynamics.jagger.engine.e1.aggregator.session.model.TagEntity;
 import com.griddynamics.jagger.webclient.client.SessionDataService;
 import com.griddynamics.jagger.webclient.client.dto.*;
 import org.slf4j.Logger;
-import com.griddynamics.jagger.webclient.client.dto.TaskDataDto;
-import com.griddynamics.jagger.webclient.client.dto.TestInfoDto;
 import com.griddynamics.jagger.webclient.client.dto.TagDto;
 import org.slf4j.LoggerFactory;
 
@@ -31,109 +29,47 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
 
     private CommonDataServiceImpl commonDataService;
     private EntityManager entityManager;
+    private DataSaverServiceImpl dataSaverService;
 
     @PersistenceContext
     public void setEntityManager(EntityManager entityManager) {
         // have it's own Entity manager to store data.
-        this.entityManager = entityManager.getEntityManagerFactory().createEntityManager();
+        this.entityManager = entityManager;
+
     }
 
     public void setCommonDataService(CommonDataServiceImpl commonDataService) {
         this.commonDataService = commonDataService;
     }
 
+    public void setDataSaverService(DataSaverServiceImpl dataSaverService) {
+        this.dataSaverService = dataSaverService;
+    }
+
     @Override
     public List<TagDto> getAllTags() {
-        List<TagEntity> tags = (List<TagEntity>) (entityManager.createQuery("select te from TagEntity as te")).getResultList();
+
         List<TagDto> allTags = new ArrayList<TagDto>();
-        if (!tags.isEmpty()) {
-            for (TagEntity tagEntity : tags) {
-                allTags.add(new TagDto(tagEntity.getName(), tagEntity.getDescription()));
+        if (commonDataService.getWebClientProperties().isTagsStoreAvailable()) {
+            List<TagEntity> tags = entityManager.createQuery("select te from TagEntity as te").getResultList();
+
+            if (!tags.isEmpty()) {
+                for (TagEntity tagEntity : tags) {
+                    allTags.add(new TagDto(tagEntity.getName(), tagEntity.getDescription()));
+                }
             }
         }
         return allTags;
     }
 
     @Override
-    public synchronized void saveTags(Long sessionData_id, List<TagDto> tags) {
-        Set<TagEntity> tagEntities = new HashSet<TagEntity>();
-        SessionData sessionData;
-        for (TagDto tagDto : tags) {
-            tagEntities.add(new TagEntity(tagDto.getName(), tagDto.getDescription()));
-        }
-        try {
-            entityManager.getTransaction().begin();
-            sessionData = (SessionData) entityManager.createQuery("select sd from SessionData as sd where sd.id  = (:sessionData_id)")
-                    .setParameter("sessionData_id", sessionData_id)
-                    .getSingleResult();
-            if (sessionData != null) {
-                sessionData.setTags(tagEntities);
-                entityManager.merge(sessionData);
-                entityManager.flush();
-            }
-        } finally {
-            entityManager.getTransaction().commit();
-        }
+    public void saveTags(Long sessionData_id, List<TagDto> tags) {
+        dataSaverService.saveTags(sessionData_id, tags);
     }
 
     @Override
-    public synchronized void saveUserComment(Long sessionData_id, String userComment) throws RuntimeException {
-
-        Number number = (Number) entityManager.createQuery(
-                "select count(*) from SessionMetaDataEntity as sm where sm.sessionData.id=:sessionData_id")
-                .setParameter("sessionData_id", sessionData_id)
-                .getSingleResult();
-
-        if (number.intValue() == 0) {
-            // create new SessionMetaInfo
-
-            // do not save empty comments
-            if (userComment.isEmpty()) {
-                return;
-            }
-
-            try {
-                entityManager.getTransaction().begin();
-                entityManager.createNativeQuery(
-                        "insert into SessionMetaDataEntity (userComment, sessionData_id) " +
-                                "values (:userComment, :sessionData_id)")
-                        .setParameter("userComment", userComment)
-                        .setParameter("sessionData_id", sessionData_id)
-                        .executeUpdate();
-
-            } finally {
-                entityManager.getTransaction().commit();
-            }
-        } else {
-            // update/delete
-
-            if (userComment.isEmpty()) {
-                // delete
-                try {
-                    entityManager.getTransaction().begin();
-                    entityManager.createQuery(
-                            "delete SessionMetaDataEntity where sessionData.id=:sessionData_id")
-                            .setParameter("sessionData_id", sessionData_id)
-                            .executeUpdate();
-                } finally {
-                    entityManager.getTransaction().commit();
-                }
-            } else {
-
-                // update
-                try {
-                    entityManager.getTransaction().begin();
-                    entityManager.createNativeQuery(
-                            "update SessionMetaDataEntity smd set smd.userComment=:userComment " +
-                                    "where smd.sessionData_id=:sessionData_id")
-                            .setParameter("userComment", userComment)
-                            .setParameter("sessionData_id", sessionData_id)
-                            .executeUpdate();
-                } finally {
-                    entityManager.getTransaction().commit();
-                }
-            }
-        }
+    public void saveUserComment(Long sessionData_id, String userComment) throws RuntimeException {
+        dataSaverService.saveUserComment(sessionData_id, userComment);
     }
 
     @Override
@@ -198,12 +134,11 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
                     "where a.tags_name=te.name")
                     .setParameter("sessionIds", sessionIds)
                     .getResultList();
-                for (Object[] tags : sessionTags) {
-                    Long sessionId=((BigInteger) tags[0]).longValue();
-                    tagMap.put(sessionId, new TagDto((String) tags[1], (String) tags[2]));
-                }
+            for (Object[] tags : sessionTags) {
+                Long sessionId = ((BigInteger) tags[0]).longValue();
+                tagMap.put(sessionId, new TagDto((String) tags[1], (String) tags[2]));
+            }
         }
-
 
         List<SessionDataDto> sessionDataDtoList = new ArrayList<SessionDataDto>(sessionDataList.size());
 
@@ -324,7 +259,7 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
                         .setParameter("sessionIds", sessionIds)
                         .getResultList();
                 for (Object[] tags : sessionTags) {
-                    Long sessionId=((BigInteger) tags[0]).longValue();
+                    Long sessionId = ((BigInteger) tags[0]).longValue();
                     tagMap.put(sessionId, new TagDto((String) tags[1], (String) tags[2]));
                 }
             }
@@ -389,8 +324,8 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
             }
             Multimap<Long, TagDto> tagMap = HashMultimap.create();
 
-            Set<Long> ids=new HashSet<Long>();
-            for(SessionData sd : sessionDataList){
+            Set<Long> ids = new HashSet<Long>();
+            for (SessionData sd : sessionDataList) {
                 ids.add(sd.getId());
             }
 
@@ -402,7 +337,7 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
                         .setParameter("ids", ids)
                         .getResultList();
                 for (Object[] tags : sessionTags) {
-                    Long sessionId=((BigInteger) tags[0]).longValue();
+                    Long sessionId = ((BigInteger) tags[0]).longValue();
                     tagMap.put(sessionId, new TagDto((String) tags[1], (String) tags[2]));
                 }
             }
@@ -414,6 +349,93 @@ public class SessionDataServiceImpl /*extends RemoteServiceServlet*/ implements 
             log.info("There was loaded {} sessions data from {} for {} ms", new Object[]{sessionDataDtoList.size(), totalSize, System.currentTimeMillis() - timestamp});
         } catch (Exception e) {
             log.error("Error was occurred during session data fetching for session Ids " + sessionIds + "; start " + start + ", length " + length, e);
+            throw new RuntimeException(e);
+        }
+
+        return new PagedSessionDataDto(sessionDataDtoList, (int) totalSize);
+    }
+
+    @Override
+    public PagedSessionDataDto getBySessionTagsName(int start, int length, Set<String> sessionTagNames) {
+        checkArgument(start >= 0, "start is negative");
+        checkArgument(length >= 0, "length is negative");
+        checkNotNull(sessionTagNames, "sessionTagNames is null");
+
+        long timestamp = System.currentTimeMillis();
+
+        long totalSize;
+        List<SessionDataDto> sessionDataDtoList;
+        List<Long> sessionIds = new ArrayList<Long>();
+        List<BigInteger> ids;
+
+        try {
+            totalSize = ((BigInteger) entityManager.createNativeQuery("select count(distinct ste.sessions_id) from SessionTagEntity as ste where ste.tags_name in (:sessionTagNames)")
+                    .setParameter("sessionTagNames", new ArrayList<String>(sessionTagNames))
+                    .getSingleResult()).longValue();
+            if (totalSize == 0) {
+                return new PagedSessionDataDto(Collections.<SessionDataDto>emptyList(), 0);
+            }
+
+            ids = entityManager.createNativeQuery("select distinct sd.sessions_id from SessionTagEntity as sd where sd.tags_name in (:sessionTagNames)")
+                    .setParameter("sessionTagNames", new ArrayList<String>(sessionTagNames)).getResultList();
+
+            for (BigInteger id : ids) {
+                sessionIds.add(id.longValue());
+            }
+
+            @SuppressWarnings("unchecked")
+            List<SessionData> sessionDataList = (List<SessionData>) entityManager.createQuery("SELECT sd from SessionData as sd where sd.id in (:sessionIds)")
+                    .setParameter("sessionIds", sessionIds)
+                    .setFirstResult(start)
+                    .setMaxResults(length)
+                    .getResultList();
+
+            if (sessionDataList.isEmpty()) {
+                return new PagedSessionDataDto(Collections.<SessionDataDto>emptyList(), 0);
+            }
+
+            Map<Long, String> userCommentMap = Collections.EMPTY_MAP;
+
+            if (commonDataService.getWebClientProperties().isUserCommentStoreAvailable()) {
+
+                List<Object[]> userComments = entityManager.createQuery(
+                        "select smd.sessionData.id, smd.userComment from SessionMetaDataEntity as smd where smd.sessionData in (:sessionDataList)")
+                        .setParameter("sessionDataList", sessionDataList)
+                        .getResultList();
+
+                if (!userComments.isEmpty()) {
+                    userCommentMap = new HashMap<Long, String>(userComments.size());
+                    for (Object[] objects : userComments) {
+                        userCommentMap.put((Long) objects[0], (String) objects[1]);
+                    }
+                }
+            }
+            Map<Long, ArrayList<TagDto>> tagMap = Collections.EMPTY_MAP;
+
+            if (commonDataService.getWebClientProperties().isTagsStoreAvailable()) {
+                List<Object[]> sessionTags = entityManager.createNativeQuery("select a.sessions_id, a.tags_name, te.description " +
+                        "from  TagEntity as te, (select distinct ste.sessions_id, ste.tags_name from SessionTagEntity as ste where ste.sessions_id in (:sessionIds)) as a " +
+                        "where a.tags_name=te.name")
+                        .setParameter("sessionIds", sessionIds)
+                        .getResultList();
+                tagMap = new HashMap<Long, ArrayList<TagDto>>();
+                for (Object[] tags : sessionTags) {
+                    if (!tagMap.containsKey(((BigInteger) tags[0]).longValue())) {
+                        tagMap.put(((BigInteger) tags[0]).longValue(), new ArrayList<TagDto>());
+                    }
+                    tagMap.get(((BigInteger) tags[0]).longValue()).add(new TagDto((String) tags[1], (String) tags[2]));
+                }
+
+            }
+
+            sessionDataDtoList = new ArrayList<SessionDataDto>(sessionDataList.size());
+            for (SessionData sessionData : sessionDataList) {
+                sessionDataDtoList.add(createSessionDataDto(sessionData, userCommentMap.get(sessionData.getId()), tagMap.get(sessionData.getId())));
+            }
+
+            log.info("There was loaded {} sessions data from {} for {} ms", new Object[]{sessionDataDtoList.size(), totalSize, System.currentTimeMillis() - timestamp});
+        } catch (Exception e) {
+            log.error("Error was occurred during session data fetching for session tags " + sessionTagNames + "; start " + start + ", length " + length, e);
             throw new RuntimeException(e);
         }
 

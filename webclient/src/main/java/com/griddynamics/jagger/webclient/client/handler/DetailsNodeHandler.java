@@ -21,9 +21,6 @@ public class DetailsNodeHandler extends TreeAwareHandler<DetailsNode> {
         Set<MetricNode> testScopePlotNames = new HashSet<MetricNode>();
         for (TestDetailsNode test: detailsNode.getTests()) {
             testScopePlotNames.addAll(test.getMetrics());
-            for (MonitoringPlotNode monitoringPlotNode: test.getMonitoringPlots()) {
-                testScopePlotNames.addAll(monitoringPlotNode.getPlots());
-            }
         }
 
         Set<SessionPlotNameDto> sessionScopePlotNames = new HashSet<SessionPlotNameDto>();

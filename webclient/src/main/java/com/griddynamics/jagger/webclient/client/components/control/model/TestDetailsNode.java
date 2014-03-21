@@ -3,7 +3,6 @@ package com.griddynamics.jagger.webclient.client.components.control.model;
 import com.griddynamics.jagger.webclient.client.dto.TaskDataDto;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,23 +14,11 @@ import java.util.List;
 public class TestDetailsNode extends MetricGroupNode<PlotNode> {
 
     private TaskDataDto taskDataDto;
-    private List<MonitoringPlotNode> monitoringPlots;
 
     public TestDetailsNode(MetricGroupNode that) {
         super(that);
     }
     public TestDetailsNode() {}
-
-    public List<MonitoringPlotNode> getMonitoringPlots() {
-        if (monitoringPlots == null) {
-            return Collections.EMPTY_LIST;
-        }
-        return monitoringPlots;
-    }
-
-    public void setMonitoringPlots(List<MonitoringPlotNode> monitoringPlots) {
-        this.monitoringPlots = monitoringPlots;
-    }
 
     public TaskDataDto getTaskDataDto() {
         return taskDataDto;
@@ -50,7 +37,6 @@ public class TestDetailsNode extends MetricGroupNode<PlotNode> {
     public List<? extends AbstractIdentifyNode> getChildren() {
         ArrayList<AbstractIdentifyNode> result = new ArrayList<AbstractIdentifyNode>();
         result.addAll(super.getChildren());
-        if (monitoringPlots != null) result.addAll(monitoringPlots);
         return result;
     }
 }

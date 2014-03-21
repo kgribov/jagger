@@ -84,6 +84,10 @@ public interface JaggerResources extends ClientBundle {
 
         String toolBar();
 
+        String searchPanel();
+
+        String searchTabPanel();
+
         String sessionNameHeader();
 
         String testNameHeader();

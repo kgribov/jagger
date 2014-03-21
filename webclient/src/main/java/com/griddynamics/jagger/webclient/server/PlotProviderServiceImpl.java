@@ -1,16 +1,23 @@
 package com.griddynamics.jagger.webclient.server;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.griddynamics.jagger.util.Pair;
 import com.griddynamics.jagger.webclient.client.PlotProviderService;
 import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
 import com.griddynamics.jagger.webclient.client.dto.*;
+import com.griddynamics.jagger.webclient.server.fetch.PlotsDbMetricDataFetcher;
+import com.griddynamics.jagger.webclient.server.fetch.implementation.*;
 import com.griddynamics.jagger.webclient.server.plot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
-import static com.griddynamics.jagger.util.AgentUtils.AGENT_NAME_SEPARATOR;
 
 /**
  * @author "Artem Kirillov" (akirillov@griddynamics.com)
@@ -20,11 +27,18 @@ public class PlotProviderServiceImpl implements PlotProviderService {
     private static final Logger log = LoggerFactory.getLogger(PlotProviderServiceImpl.class);
 
     private DataPointCompressingProcessor compressingProcessor;
-    private ThroughputPlotDataProvider throughputPlotDataProvider;
-    private LatencyPlotDataProvider latencyPlotDataProvider;
-    private TimeLatencyPercentilePlotDataProvider timeLatencyPercentilePlotDataProvider;
     private MonitoringPlotDataProvider monitoringPlotDataProvider;
-    private CustomMetricPlotDataProvider customMetricPlotDataProvider;
+
+    private ExecutorService threadPool;
+
+    private ThroughputMetricPlotFetcher throughputMetricPlotFetcher;
+    private LatencyMetricPlotFetcher latencyMetricPlotFetcher;
+    private TimeLatencyPercentileMetricPlotFetcher timeLatencyPercentileMetricPlotFetcher;
+    private CustomMetricPlotFetcher customMetricPlotFetcher;
+    private CustomTestGroupMetricPlotFetcher customTestGroupMetricPlotFetcher;
+    private MonitoringMetricPlotFetcher monitoringMetricPlotFetcher;
+
+
 
     private LegendProvider legendProvider;
 
@@ -33,26 +47,6 @@ public class PlotProviderServiceImpl implements PlotProviderService {
     @Required
     public void setCompressingProcessor(DataPointCompressingProcessor compressingProcessor) {
         this.compressingProcessor = compressingProcessor;
-    }
-
-    @Required
-    public void setCustomMetricPlotDataProvider(CustomMetricPlotDataProvider customMetricPlotDataProvider) {
-        this.customMetricPlotDataProvider = customMetricPlotDataProvider;
-    }
-
-    @Required
-    public void setThroughputPlotDataProvider(ThroughputPlotDataProvider throughputPlotDataProvider) {
-        this.throughputPlotDataProvider = throughputPlotDataProvider;
-    }
-
-    @Required
-    public void setLatencyPlotDataProvider(LatencyPlotDataProvider latencyPlotDataProvider) {
-        this.latencyPlotDataProvider = latencyPlotDataProvider;
-    }
-
-    @Required
-    public void setTimeLatencyPercentilePlotDataProvider(TimeLatencyPercentilePlotDataProvider timeLatencyPercentilePlotDataProvider) {
-        this.timeLatencyPercentilePlotDataProvider = timeLatencyPercentilePlotDataProvider;
     }
 
     @Required
@@ -65,40 +59,124 @@ public class PlotProviderServiceImpl implements PlotProviderService {
         this.legendProvider = legendProvider;
     }
 
+    @Required
+    public void setThreadPool(ExecutorService threadPool) {
+        this.threadPool = threadPool;
+    }
+
+    @Required
+    public void setThroughputMetricPlotFetcher(ThroughputMetricPlotFetcher throughputMetricPlotFetcher) {
+        this.throughputMetricPlotFetcher = throughputMetricPlotFetcher;
+    }
+
+    @Required
+    public void setLatencyMetricPlotFetcher(LatencyMetricPlotFetcher latencyMetricPlotFetcher) {
+        this.latencyMetricPlotFetcher = latencyMetricPlotFetcher;
+    }
+
+    @Required
+    public void setTimeLatencyPercentileMetricPlotFetcher(TimeLatencyPercentileMetricPlotFetcher timeLatencyPercentileMetricPlotFetcher) {
+        this.timeLatencyPercentileMetricPlotFetcher = timeLatencyPercentileMetricPlotFetcher;
+    }
+
+    @Required
+    public void setCustomMetricPlotFetcher(CustomMetricPlotFetcher customMetricPlotFetcher) {
+        this.customMetricPlotFetcher = customMetricPlotFetcher;
+    }
+
+    public void setCustomTestGroupMetricPlotFetcher(CustomTestGroupMetricPlotFetcher customTestGroupMetricPlotFetcher) {
+        this.customTestGroupMetricPlotFetcher = customTestGroupMetricPlotFetcher;
+    }
+
+    @Required
+    public void setMonitoringMetricPlotFetcher(MonitoringMetricPlotFetcher monitoringMetricPlotFetcher) {
+        this.monitoringMetricPlotFetcher = monitoringMetricPlotFetcher;
+    }
+
     //===========================
     //===========Contract Methods
     //===========================
 
     @Override
     public Map<MetricNode, PlotSeriesDto> getPlotData(Set<MetricNode> plots) throws IllegalArgumentException{
-        PlotDataProvider plotDataProvider;
-        Map<MetricNode, PlotSeriesDto> result = new HashMap<MetricNode, PlotSeriesDto>();
-        List<PlotSeriesDto> plotSeriesDtoList;
 
-        //todo currently - slow approach. best way to group metrics by origin, get lines and reorder lines to plots
+        long temp = System.currentTimeMillis();
+
+        final Multimap<PlotsDbMetricDataFetcher, MetricNameDto> fetchMap = ArrayListMultimap.create();
 
         for (MetricNode metricNode : plots) {
-
-            List<PlotDatasetDto> plotDatasetDtoList = new ArrayList<PlotDatasetDto>();
-
             for (MetricNameDto metricNameDto : metricNode.getMetricNameDtoList()) {
-                plotDataProvider = findPlotDataProvider(metricNameDto);
-                if (plotDataProvider != null) {
-                    // returns plot
-                    plotSeriesDtoList = plotDataProvider.getPlotData(metricNameDto);
-
-                    // we don't need plot, we need lines
-                    for (PlotSeriesDto plotSeriesDto : plotSeriesDtoList) {
-                        plotDatasetDtoList.addAll(plotSeriesDto.getPlotSeries());
-                    }
+                switch (metricNameDto.getOrigin()) {
+                    case METRIC:
+                        fetchMap.put(customMetricPlotFetcher, metricNameDto);
+                        break;
+                    case TEST_GROUP_METRIC:
+                        fetchMap.put(customTestGroupMetricPlotFetcher, metricNameDto);
+                        break;
+                    case MONITORING:
+                        fetchMap.put(monitoringMetricPlotFetcher, metricNameDto);
+                        break;
+                    case LATENCY:
+                        fetchMap.put(latencyMetricPlotFetcher, metricNameDto);
+                        break;
+                    case LATENCY_PERCENTILE:
+                        fetchMap.put(timeLatencyPercentileMetricPlotFetcher, metricNameDto);
+                        break;
+                    case THROUGHPUT:
+                        fetchMap.put(throughputMetricPlotFetcher, metricNameDto);
+                        break;
+                    default:  // if anything else
+                        log.error("MetricNameDto with origin : {} appears in metric name list for plot retrieving ({})", metricNameDto.getOrigin(), metricNameDto);
+                        throw new RuntimeException("Unable to get plot for metric " + metricNameDto.getMetricName() +
+                                " with origin: " + metricNameDto.getOrigin());
                 }
             }
-
-            // at the moment all MetricNameDtos in MetricNode have same taskIds => it is valid to use first one
-            result.put(metricNode, new PlotSeriesDto(plotDatasetDtoList,"Time, sec", "",legendProvider.getPlotHeader(metricNode.getMetricNameDtoList().get(0).getTaskIds(), metricNode.getDisplayName())));
-
         }
 
+        Set<PlotsDbMetricDataFetcher> fetcherSet = fetchMap.keySet();
+
+        List<Future<Set<Pair<MetricNameDto, List<PlotDatasetDto>>>>> futures = new ArrayList<Future<Set<Pair<MetricNameDto, List<PlotDatasetDto>>>>>();
+
+        for (final PlotsDbMetricDataFetcher fetcher : fetcherSet) {
+            futures.add(threadPool.submit(new Callable<Set<Pair<MetricNameDto, List<PlotDatasetDto>>>>() {
+
+                @Override
+                public Set<Pair<MetricNameDto, List<PlotDatasetDto>>> call() throws Exception {
+                    return fetcher.getResult(new ArrayList<MetricNameDto>(fetchMap.get(fetcher)));
+                }
+            }));
+        }
+
+        Set<Pair<MetricNameDto, List<PlotDatasetDto>>>  resultSet = new HashSet<Pair<MetricNameDto, List<PlotDatasetDto>>>();
+
+        try {
+            for (Future<Set<Pair<MetricNameDto, List<PlotDatasetDto>>>> future : futures) {
+                resultSet.addAll(future.get());
+            }
+        } catch (Throwable th) {
+            log.error("Exception while plots retrieving", th);
+            throw new RuntimeException("Exception while plots retrieving", th);
+        }
+
+        Multimap<MetricNode, PlotDatasetDto> tempMultiMap = ArrayListMultimap.create();
+
+        for (Pair<MetricNameDto, List<PlotDatasetDto>> pair : resultSet) {
+            for (MetricNode metricNode : plots) {
+                if (metricNode.getMetricNameDtoList().contains(pair.getFirst())) {
+                    tempMultiMap.putAll(metricNode, pair.getSecond());
+                    break;
+                }
+            }
+        }
+
+        Map<MetricNode, PlotSeriesDto> result = new HashMap<MetricNode, PlotSeriesDto>();
+
+        for (MetricNode metricNode : plots) {
+            // at the moment all MetricNameDtos in MetricNode have same taskIds => it is valid to use first one
+            result.put(metricNode, new PlotSeriesDto(new ArrayList<PlotDatasetDto>(tempMultiMap.get(metricNode)),"Time, sec", "",legendProvider.getPlotHeader(metricNode.getMetricNameDtoList().get(0).getTaskIds(), metricNode.getDisplayName())));
+        }
+
+        log.debug("Total time of plots retrieving : " + (System.currentTimeMillis() - temp));
         return result;
     }
 
@@ -166,36 +244,5 @@ public class PlotProviderServiceImpl implements PlotProviderService {
         }
 
         return logBuilder.toString();
-    }
-
-    private PlotDataProvider findPlotDataProvider(MetricNameDto metricNameDto) {
-        PlotDataProvider plotDataProvider = null;
-        switch (metricNameDto.getOrigin()) {
-            case UNKNOWN:
-            case STANDARD_METRICS:
-            case VALIDATOR:
-            case DURATION:
-
-                throw new RuntimeException("Unable to get plot data for metric " + metricNameDto.getMetricName() +
-                        " with origin: " + metricNameDto.getOrigin());
-
-            case METRIC:
-                plotDataProvider = customMetricPlotDataProvider;
-                break;
-            case LATENCY:
-                plotDataProvider = latencyPlotDataProvider;
-                break;
-            case THROUGHPUT:
-                plotDataProvider = throughputPlotDataProvider;
-                break;
-            case LATENCY_PERCENTILE:
-                plotDataProvider = timeLatencyPercentilePlotDataProvider;
-                break;
-            case MONITORING:
-                plotDataProvider = monitoringPlotDataProvider;
-                break;
-        }
-
-        return plotDataProvider;
     }
 }

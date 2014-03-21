@@ -1,17 +1,22 @@
 package com.griddynamics.jagger.webclient.server;
 
+import com.google.common.collect.Multimap;
 import com.griddynamics.jagger.agent.model.DefaultMonitoringParameters;
 import com.griddynamics.jagger.engine.e1.aggregator.workload.model.WorkloadProcessLatencyPercentile;
 import com.griddynamics.jagger.monitoring.reporting.GroupKey;
-import com.griddynamics.jagger.util.AgentUtils;
-import com.griddynamics.jagger.webclient.client.components.control.model.*;
+import com.griddynamics.jagger.util.MonitoringIdUtils;
+import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
+import com.griddynamics.jagger.webclient.client.components.control.model.MonitoringSessionScopePlotNode;
+import com.griddynamics.jagger.webclient.client.components.control.model.PlotNode;
+import com.griddynamics.jagger.webclient.client.components.control.model.SessionPlotNode;
 import com.griddynamics.jagger.webclient.client.data.MetricRankingProvider;
 import com.griddynamics.jagger.webclient.client.data.WebClientProperties;
 import com.griddynamics.jagger.webclient.client.dto.MetricNameDto;
 import com.griddynamics.jagger.webclient.client.dto.SessionPlotNameDto;
 import com.griddynamics.jagger.webclient.client.dto.TaskDataDto;
+import com.griddynamics.jagger.webclient.server.fetch.FetchUtil;
 import com.griddynamics.jagger.webclient.server.fetch.MetricNameUtil;
-import com.griddynamics.jagger.webclient.server.plot.CustomMetricPlotDataProvider;
+import com.griddynamics.jagger.webclient.server.plot.CustomMetricPlotNameProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -39,13 +44,14 @@ public class CommonDataProviderImpl implements CommonDataProvider {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private WebClientProperties webClientProperties;
+    private FetchUtil fetchUtil;
 
     @PersistenceContext
     public void setEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
-    private CustomMetricPlotDataProvider customMetricPlotDataProvider;
+    private CustomMetricPlotNameProvider customMetricPlotNameProvider;
     private Map<GroupKey, DefaultWorkloadParameters[]> workloadPlotGroups;
     private Map<GroupKey, DefaultMonitoringParameters[]> monitoringPlotGroups;
 
@@ -53,6 +59,32 @@ public class CommonDataProviderImpl implements CommonDataProvider {
         return monitoringPlotGroups;
     }
 
+    @Override
+    public Map<String,Set<String>> getDefaultMonitoringParameters() {
+        return getDefaultMonitoringParametersMap(monitoringPlotGroups);
+    }
+
+    public static Map<String,Set<String>> getDefaultMonitoringParametersMap(Map<GroupKey, DefaultMonitoringParameters[]> monitoringPlotGroups) {
+        // relation of old monitoring names from Groupkey (were used in hyperlinks) to
+        // new monitoring metric ids from DefaultMonitoringParameters
+        // necessary to process old hyperlinks by new client
+        Map<String,Set<String>> result = new HashMap<String, Set<String>>();
+
+        for(Map.Entry<GroupKey,DefaultMonitoringParameters[]> groupKeyEntry : monitoringPlotGroups.entrySet()) {
+            String key = groupKeyEntry.getKey().getUpperName();
+            if (!result.containsKey(key)) {
+                result.put(key,new HashSet<String>());
+            }
+
+            for (DefaultMonitoringParameters defaultMonitoringParameters : groupKeyEntry.getValue()) {
+                result.get(key).add(defaultMonitoringParameters.getId());
+            }
+        }
+
+        return result;
+    }
+
+    @Required
     public void setMonitoringPlotGroups(Map<GroupKey, DefaultMonitoringParameters[]> monitoringPlotGroups) {
         this.monitoringPlotGroups = monitoringPlotGroups;
     }
@@ -61,16 +93,17 @@ public class CommonDataProviderImpl implements CommonDataProvider {
         return workloadPlotGroups;
     }
 
+    @Required
     public void setWorkloadPlotGroups(Map<GroupKey, DefaultWorkloadParameters[]> workloadPlotGroups) {
         this.workloadPlotGroups = workloadPlotGroups;
     }
 
-    public CustomMetricPlotDataProvider getCustomMetricPlotDataProvider() {
-        return customMetricPlotDataProvider;
+    public CustomMetricPlotNameProvider getCustomMetricPlotNameProvider() {
+        return customMetricPlotNameProvider;
     }
 
-    public void setCustomMetricPlotDataProvider(CustomMetricPlotDataProvider customMetricPlotDataProvider) {
-        this.customMetricPlotDataProvider = customMetricPlotDataProvider;
+    public void setCustomMetricPlotNameProvider(CustomMetricPlotNameProvider customMetricPlotNameProvider) {
+        this.customMetricPlotNameProvider = customMetricPlotNameProvider;
     }
 
     private List<MetricNameDto> standardMetricNameDtoList;
@@ -93,6 +126,8 @@ public class CommonDataProviderImpl implements CommonDataProvider {
         long temp = System.currentTimeMillis();
 
         metrics.addAll(getCustomMetricsNamesNewModel(tests));
+
+        metrics.addAll(getCustomTestGroupMetricsNamesNewModel(tests));
 
         metrics.addAll(getCustomMetricsNamesOldModel(tests));
 
@@ -154,25 +189,77 @@ public class CommonDataProviderImpl implements CommonDataProvider {
 
     }
 
-
     public Set<MetricNameDto> getCustomMetricsNamesNewModel(List<TaskDataDto> tests) {
         try {
-            return CustomMetricDataProvider.getMetricNames(entityManager, tests, new MetricDescriptionLoader() {
-                @Override
-                public List<Object[]> loadTestsMetricDescriptions(Set<Long> ids) {
-                    return entityManager.createQuery(
-                            "select mse.metricDescription.metricId, mse.metricDescription.displayName, mse.metricDescription.taskData.id " +
-                                    "from MetricSummaryEntity as mse where mse.metricDescription.taskData.id in (:taskIds)")
-                            .setParameter("taskIds", ids)
-                            .getResultList();
+            Set<Long> taskIds = CommonUtils.getTestsIds(tests);
+
+            List<Object[]> metricDescriptionEntities = getMetricNames(taskIds);
+
+            if (metricDescriptionEntities.isEmpty()) {
+                return Collections.EMPTY_SET;
+            }
+
+            Set<MetricNameDto>  metrics = new HashSet<MetricNameDto>(metricDescriptionEntities.size());
+
+            for (Object[] mde : metricDescriptionEntities) {
+                for (TaskDataDto td : tests) {
+                    if (td.getIds().contains((Long) mde[2])) {
+                        metrics.add(new MetricNameDto(td, (String) mde[0], (String) mde[1], MetricNameDto.Origin.METRIC));
+                        break;
+                    }
                 }
-            });
+            }
+
+            return metrics;
         } catch (PersistenceException e) {
             log.debug("Could not fetch data from MetricSummaryEntity: {}", DataProcessingUtil.getMessageFromLastCause(e));
             return Collections.EMPTY_SET;
         }
     }
 
+    public Set<MetricNameDto> getCustomTestGroupMetricsNamesNewModel(List<TaskDataDto> tests) {
+        try {
+            Set<Long> taskIds = CommonUtils.getTestsIds(tests);
+
+            Multimap<Long, Long> testGroupMap = fetchUtil.getTestsInTestGroup(taskIds);
+
+            List<Object[]> metricDescriptionEntities = getMetricNames(testGroupMap.keySet());
+
+            metricDescriptionEntities = CommonUtils.filterMonitoring(metricDescriptionEntities, monitoringPlotGroups);
+
+            if (metricDescriptionEntities.isEmpty()) {
+                return Collections.EMPTY_SET;
+            }
+
+            Set<MetricNameDto>  metrics = new HashSet<MetricNameDto>(metricDescriptionEntities.size());
+
+            // add test-group metric names
+            for (Object[] mde : metricDescriptionEntities){
+                for (TaskDataDto td : tests){
+                    Collection<Long> allTestsInGroup = testGroupMap.get((Long)mde[2]);
+                    if (CommonUtils.containsAtLeastOne(td.getIds(), allTestsInGroup)){
+                        metrics.add(new MetricNameDto(td, (String)mde[0], (String)mde[1], MetricNameDto.Origin.TEST_GROUP_METRIC));
+                    }
+                }
+            }
+
+            return metrics;
+        } catch (PersistenceException e) {
+            log.debug("Could not fetch test-group data from MetricSummaryEntity: {}", DataProcessingUtil.getMessageFromLastCause(e));
+            return Collections.EMPTY_SET;
+        }
+    }
+
+    private List<Object[]> getMetricNames(Set<Long> taskIds){
+        if (taskIds.isEmpty()){
+            return Collections.EMPTY_LIST;
+        }
+        return entityManager.createQuery(
+                "select mse.metricDescription.metricId, mse.metricDescription.displayName, mse.metricDescription.taskData.id " +
+                        "from MetricSummaryEntity as mse where mse.metricDescription.taskData.id in (:taskIds)")
+                .setParameter("taskIds", taskIds)
+                .getResultList();
+    }
 
     /**
      * Fetch validators names from database
@@ -326,23 +413,16 @@ public class CommonDataProviderImpl implements CommonDataProvider {
     }
 
 
-    /**
-     * one db call method
-     * @param sessionIds
-     * @param taskDataDtos
-     * @return
-     */
     @Override
-    public Map<TaskDataDto, List<MonitoringPlotNode>> getMonitoringPlotNodes(Set<String> sessionIds, List<TaskDataDto> taskDataDtos) {
+    public Map<TaskDataDto, List<PlotNode>> getMonitoringPlotNodes(Set<String> sessionIds, List<TaskDataDto> taskDataDtos) {
+
         try {
             Map<TaskDataDto, List<BigInteger>>  monitoringIds = getMonitoringIds(sessionIds, taskDataDtos);
             if (monitoringIds.isEmpty()) {
                 return Collections.EMPTY_MAP;
             }
 
-
-
-            Map<TaskDataDto, List<MonitoringPlotNode>> result = getMonitoringPlotNames(sessionIds, monitoringPlotGroups.entrySet(), monitoringIds);
+            Map<TaskDataDto, List<PlotNode>> result = getMonitoringPlotNames(monitoringPlotGroups.entrySet(), monitoringIds);
 
             if (result.isEmpty()) {
                 return Collections.EMPTY_MAP;
@@ -539,7 +619,7 @@ public class CommonDataProviderImpl implements CommonDataProvider {
                 }
             }
 
-            Set<MetricNameDto> customMetrics = customMetricPlotDataProvider.getPlotNames(taskList);
+            Set<MetricNameDto> customMetrics = customMetricPlotNameProvider.getPlotNames(taskList);
 
             metricNameDtoList.addAll(customMetrics);
 
@@ -567,37 +647,6 @@ public class CommonDataProviderImpl implements CommonDataProvider {
 
         return result;
     }
-
-    @Override
-    public boolean checkIfUserCommentStorageAvailable() {
-
-        try {
-            entityManager.createQuery(
-                    "select count(sm) from SessionMetaDataEntity sm")
-                    .getSingleResult();
-            return true;
-        } catch (Exception e) {
-            log.warn("Could not access SessionMetaDataTable", e);
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean checkIfTagsStorageAvailable() {
-
-        try {
-            entityManager.createQuery(
-                    "select count(te) from TagEntity te")
-                    .getSingleResult();
-            return true;
-        } catch (Exception e) {
-            log.warn("Could not access TagEntity table", e);
-        }
-
-        return false;
-    }
-
 
     private List<MonitoringSessionScopePlotNode> getMonitoringPlotNamesNew(Set<String> sessionIds) {
 
@@ -638,7 +687,7 @@ public class CommonDataProviderImpl implements CommonDataProvider {
 
             SessionPlotNode plotNode = new SessionPlotNode();
             String agentIdenty = objects[0] == null ? objects[1].toString() : objects[0].toString();
-            plotNode.setPlotNameDto(new SessionPlotNameDto(sessionIds, AgentUtils.getMonitoringMetricId(groupKey, agentIdenty)));
+            plotNode.setPlotNameDto(new SessionPlotNameDto(sessionIds, MonitoringIdUtils.getMonitoringMetricId(groupKey, agentIdenty)));
             plotNode.setDisplayName(agentIdenty);
             String id = METRICS_PREFIX + groupKey + agentIdenty;
             plotNode.setId(id);
@@ -658,8 +707,7 @@ public class CommonDataProviderImpl implements CommonDataProvider {
     }
 
 
-    private Map<TaskDataDto, List<MonitoringPlotNode>> getMonitoringPlotNames(Set<String> sessionIds, Set<Map.Entry<GroupKey, DefaultMonitoringParameters[]>> monitoringParameters, Map<TaskDataDto, List<BigInteger>> monitoringIdsMap) {
-
+    private Map<TaskDataDto, List<PlotNode>> getMonitoringPlotNames(Set<Map.Entry<GroupKey, DefaultMonitoringParameters[]>> monitoringParameters, Map<TaskDataDto, List<BigInteger>> monitoringIdsMap) {
         Set<BigInteger> monitoringIds = new HashSet<BigInteger>();
         for (List<BigInteger> mIds : monitoringIdsMap.values()) {
             monitoringIds.addAll(mIds);
@@ -675,7 +723,7 @@ public class CommonDataProviderImpl implements CommonDataProvider {
                         .getResultList();
         log.debug("db call to fetch all MonitoringPlotNames for tests in {} ms (size: {})", System.currentTimeMillis() - temp, agentIdentifierObjects.size());
 
-        Map<TaskDataDto, List<MonitoringPlotNode>> resultMap = new HashMap<TaskDataDto, List<MonitoringPlotNode>>();
+        Map<TaskDataDto, Set<PlotNode>> resultMap = new HashMap<TaskDataDto, Set<PlotNode>>();
 
         Set<TaskDataDto> taskSet = monitoringIdsMap.keySet();
 
@@ -684,62 +732,45 @@ public class CommonDataProviderImpl implements CommonDataProvider {
             for (TaskDataDto tdd : taskSet) {
                 if (monitoringIdsMap.get(tdd).contains(testId)) {
                     if (!resultMap.containsKey(tdd)) {
-                        resultMap.put(tdd, new ArrayList<MonitoringPlotNode>());
+                        resultMap.put(tdd, new HashSet<PlotNode>());
                     }
 
-                    List<MonitoringPlotNode> mpnList = resultMap.get(tdd);
-                    String monitoringKey = findMonitoringKey((String)objects[3], monitoringParameters);
-                    if (monitoringKey == null) {
-                        log.warn("Could not find monitoing key for description: '{}' and monitoing task id: '{}'", objects[3], objects[2]);
-                        break;
-                    }
-                    String identy = objects[0] == null ? objects[1].toString() : objects[0].toString();
-
-                    PlotNode plotNode = new PlotNode();
-                    plotNode.setDisplayName(identy);
-                    String id = METRICS_PREFIX + tdd.hashCode() + monitoringKey + identy;
-                    MetricNameDto metricNameDto = new MetricNameDto(tdd, AgentUtils.getMonitoringMetricId(monitoringKey, identy));
-                    metricNameDto.setOrigin(MetricNameDto.Origin.MONITORING);
-                    plotNode.init(id, identy, Arrays.asList(metricNameDto));
-
-                    boolean present = false;
-                    for (MonitoringPlotNode mpn : mpnList) {
-                        if (mpn.getDisplayName().equals(monitoringKey)) {
-                            if (!mpn.getPlots().contains(plotNode))
-                                mpn.getPlots().add(plotNode);
-                            present = true;
-                            break;
+                    String monitoringId = null;     // Id of particular metric
+                    for (Map.Entry<GroupKey, DefaultMonitoringParameters[]> entry : monitoringParameters) {
+                        for (DefaultMonitoringParameters dmp : entry.getValue()) {
+                            if (dmp.getDescription().equals((String) objects[3])) {
+                                monitoringId = dmp.getId();
+                            }
                         }
                     }
 
-                    if (!present) {
-                        MonitoringPlotNode monitoringPlotNode = new MonitoringPlotNode();
-                        monitoringPlotNode.setId(MONITORING_PREFIX + tdd.hashCode() + monitoringKey);
-                        monitoringPlotNode.setDisplayName(monitoringKey);
-                        resultMap.get(tdd).add(monitoringPlotNode);
-                        monitoringPlotNode.setPlots(new ArrayList<PlotNode>());
-                        if (!monitoringPlotNode.getPlots().contains(plotNode))
-                            monitoringPlotNode.getPlots().add(plotNode);
+                    if (monitoringId == null) {
+                        log.warn("Could not find monitoring key for description: '{}' and monitoing task id: '{}'", objects[3], objects[2]);
+                        break;
                     }
+
+                    String agentId = objects[0] == null ? objects[1].toString() : objects[0].toString();
+
+                    PlotNode plotNode = new PlotNode();
+
+                    String id = METRICS_PREFIX + tdd.hashCode() + "_" + monitoringId + "_" + agentId;
+                    MetricNameDto metricNameDto = new MetricNameDto(tdd, MonitoringIdUtils.getMonitoringMetricId(monitoringId, agentId));
+                    metricNameDto.setOrigin(MetricNameDto.Origin.MONITORING);
+                    plotNode.init(id, id, Arrays.asList(metricNameDto));
+
+                    resultMap.get(tdd).add(plotNode);
                     break;
                 }
             }
         }
 
-
-        // sorting
-        for (TaskDataDto tdd : taskSet) {
-            List<MonitoringPlotNode> mpnList = resultMap.get(tdd);
-            if (mpnList == null) {
-                resultMap.put(tdd, Collections.EMPTY_LIST);
-                continue;
-            }
-            MetricRankingProvider.sortPlotNodes(mpnList);
-            for (MonitoringPlotNode mpn : mpnList) {
-                MetricRankingProvider.sortPlotNodes(mpn.getPlots());
-            }
+        // set to list
+        Map<TaskDataDto, List<PlotNode>> newResultMap = new HashMap<TaskDataDto, List<PlotNode>>();
+        for (TaskDataDto taskDataDto: resultMap.keySet()) {
+            newResultMap.put(taskDataDto,new ArrayList<PlotNode>(resultMap.get(taskDataDto)));
         }
-        return resultMap;
+
+        return newResultMap;
     }
 
     private String findMonitoringKey(String description, Set<Map.Entry<GroupKey, DefaultMonitoringParameters[]>> monitoringParameters) {
@@ -752,7 +783,6 @@ public class CommonDataProviderImpl implements CommonDataProvider {
         }
         return null;
     }
-
 
     private Map<TaskDataDto, Boolean> isWorkloadStatisticsAvailable(List<TaskDataDto> tests) {
 
@@ -914,11 +944,47 @@ public class CommonDataProviderImpl implements CommonDataProvider {
         return result;
     }
 
+    @Override
     public WebClientProperties getWebClientProperties() {
         return webClientProperties;
     }
 
     public void setWebClientProperties(WebClientProperties webClientProperties) {
         this.webClientProperties = webClientProperties;
+        this.webClientProperties.setUserCommentStoreAvailable(checkIfUserCommentStorageAvailable());
+        this.webClientProperties.setTagsStoreAvailable(checkIfTagsStorageAvailable());
+    }
+
+    private boolean checkIfUserCommentStorageAvailable() {
+
+        try {
+            // even if table is empty we can set user comments
+            entityManager.createQuery(
+                    "select count(sm) from SessionMetaDataEntity sm")
+                    .getSingleResult();
+            return true;
+        } catch (Exception e) {
+            log.warn("Could not access SessionMetaDataTable", e);
+        }
+
+        return false;
+    }
+    
+    private boolean checkIfTagsStorageAvailable() {
+
+        try {
+            entityManager.createQuery(
+                    "select 1 from TagEntity")
+                    .getSingleResult();
+            return true;
+        } catch (Exception e) {
+            log.warn("Could not access TagEntity table", e);
+        }
+
+        return false;
+    }
+
+    public void setFetchUtil(FetchUtil fetchUtil) {
+        this.fetchUtil = fetchUtil;
     }
 }

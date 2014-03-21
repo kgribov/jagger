@@ -5,7 +5,6 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safecss.shared.SafeStyles;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.*;
 import com.griddynamics.jagger.webclient.client.SessionDataService;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.griddynamics.jagger.webclient.client.data.WebClientProperties;
@@ -30,7 +29,6 @@ import java.util.*;
  * Time: 12:30
  * Panel that contains table of metrics in comparison mod (multiple session selected)
  */
-
 public class SessionComparisonPanel extends VerticalPanel {
 
     private final String TEST_DESCRIPTION = "testDescription";
@@ -209,8 +207,8 @@ public class SessionComparisonPanel extends VerticalPanel {
                     if (item.getKey().equals(SESSION_TAGS) && event.getCellIndex() > 0) {
                         SessionDataDto currentSession = defineCurrentSession(event);
                         if (allTagsLoadComplete)
-                            tagBox.popUp(currentSession,
-                                    item, allTags, currentSession.getTags());
+                            tagBox.popUpForEdit(currentSession,
+                                    item, allTags);
                     }
                 }
             });
@@ -286,12 +284,12 @@ public class SessionComparisonPanel extends VerticalPanel {
                 itemUserComment.put(SESSION_HEADER + session.getSessionId(), userComment);
             }
             if (webClientProperties.isTagsStoreAvailable()) {
-                if (session.getTags() != null) {
-                    for (TagDto tagDto : session.getTags())
-                        tagsStr += tagDto.getName() + " ";
+                for (int i = 0; i < session.getTags().size(); i++) {
+                    if (i == session.getTags().size() - 1)
+                        tagsStr += session.getTags().get(i).getName();
+                    else
+                        tagsStr += session.getTags().get(i).getName() + ", ";
                 }
-                else
-                    session.setTags(new ArrayList<TagDto>());
                 itemTags.put(SESSION_HEADER + session.getSessionId(), tagsStr);
                 tagsStr = "";
             }
@@ -430,8 +428,6 @@ public class SessionComparisonPanel extends VerticalPanel {
         testInfo.put(NAME, TEST_INFO);
         testInfo.put(TEST_DESCRIPTION, test.getDescription());
         testInfo.put(TEST_NAME, testItemName);
-        treeStore.insert(testItem, 0 , testInfo);
-        testInfo.put(TEST_NAME, test.getTaskName());
         treeStore.insert(testItem, 0, testInfo);
 
         TreeItem clock = new TreeItem(testItem.getKey() + "Clock");

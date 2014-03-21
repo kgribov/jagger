@@ -1,5 +1,6 @@
 package com.griddynamics.jagger.webclient.client.components.control.model;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -8,8 +9,6 @@ import java.util.List;
  */
 public class SessionInfoNode extends AbstractIdentifyNode {
 
-    List<SessionInfoLeaf> sessionInfoList;
-
     public SessionInfoNode() {
     }
 
@@ -17,16 +16,8 @@ public class SessionInfoNode extends AbstractIdentifyNode {
         super(id, displayName);
     }
 
-    public List<SessionInfoLeaf> getSessionInfoList() {
-        return sessionInfoList;
-    }
-
-    public void setSessionInfoList(List<SessionInfoLeaf> sessionInfoList) {
-        this.sessionInfoList = sessionInfoList;
-    }
-
     @Override
     public List<? extends AbstractIdentifyNode> getChildren() {
-        return sessionInfoList;
+        return Collections.EMPTY_LIST;
     }
 }

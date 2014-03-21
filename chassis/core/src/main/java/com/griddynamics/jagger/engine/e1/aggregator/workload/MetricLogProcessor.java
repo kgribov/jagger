@@ -21,11 +21,12 @@ package com.griddynamics.jagger.engine.e1.aggregator.workload;
 
 import com.griddynamics.jagger.coordinator.NodeId;
 import com.griddynamics.jagger.engine.e1.aggregator.session.model.TaskData;
-import com.griddynamics.jagger.engine.e1.aggregator.workload.model.*;
-import com.griddynamics.jagger.master.CompositeTask;
-import com.griddynamics.jagger.reporting.interval.IntervalSizeProvider;
+import com.griddynamics.jagger.engine.e1.aggregator.workload.model.MetricDescriptionEntity;
+import com.griddynamics.jagger.engine.e1.aggregator.workload.model.MetricPointEntity;
+import com.griddynamics.jagger.engine.e1.aggregator.workload.model.MetricSummaryEntity;
 import com.griddynamics.jagger.engine.e1.collector.*;
 import com.griddynamics.jagger.engine.e1.scenario.WorkloadTask;
+import com.griddynamics.jagger.master.CompositeTask;
 import com.griddynamics.jagger.master.DistributionListener;
 import com.griddynamics.jagger.master.Master;
 import com.griddynamics.jagger.master.SessionIdProvider;
@@ -146,7 +147,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                     StatisticsGenerator statisticsGenerator = new StatisticsGenerator(file, aggregationInfo, intervalSize, taskData).generate();
                     final Collection<MetricPointEntity> statistics = statisticsGenerator.getStatistics();
 
-                    log.info("BEGIN: Save to data base " + metricPath);
+                    log.debug("BEGIN: Save to data base " + metricPath);
                     getHibernateTemplate().execute(new HibernateCallback<Void>() {
                         @Override
                         public Void doInHibernate(Session session) throws HibernateException, SQLException {
@@ -157,7 +158,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                             return null;
                         }
                     });
-                    log.info("END: Save to data base " + metricPath);
+                    log.debug("END: Save to data base " + metricPath);
                 } catch (Exception e) {
                     log.error("Error during processing metric by path: '{}'",metricPath);
                 }
@@ -222,8 +223,9 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
 
                     MetricAggregator nameAggregator = overallMetricAggregator == null ? intervalAggregator : overallMetricAggregator;
 
-                    String aggregatorDisplayNameSuffix = nameAggregator.getName();
-                    String aggregatorIdSuffix = createIdFromDisplayName(aggregatorDisplayNameSuffix);
+                    String aggregatorName = nameAggregator.getName();
+                    String aggregatorIdSuffix = createIdFromName(aggregatorName);
+                    String aggregatorDisplayNameSuffix = createAggregatorDisplayNameSuffix(aggregatorName);
 
                     String displayName = (metricDescription.getDisplayName() == null ? metricDescription.getMetricId() :
                     metricDescription.getDisplayName()) + aggregatorDisplayNameSuffix;
@@ -335,9 +337,19 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
         * @param name aggregator`s name
         * @return aggregator`s id
         */
-        private String createIdFromDisplayName(String name) {
+        private String createIdFromName(String name) {
             String regexp = "[\\;/\\?\\:@\\&=\\+\\$\\,]";
             return name.replaceAll(regexp, "");
         }
+
+        /**
+         * Wrap aggregator name to make it more comfortable to read in pdf/webclient
+         * @param name aggregator`s name
+         * @return suffix for displayName of metric with given aggregator
+         */
+        private String createAggregatorDisplayNameSuffix(String name) {
+            return " [" + name + ']';
+        }
+        
     }
 }

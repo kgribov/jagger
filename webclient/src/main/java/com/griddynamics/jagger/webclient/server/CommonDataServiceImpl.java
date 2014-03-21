@@ -3,28 +3,21 @@ package com.griddynamics.jagger.webclient.server;
 import com.griddynamics.jagger.webclient.client.CommonDataService;
 import com.griddynamics.jagger.webclient.client.data.WebClientProperties;
 
+import java.util.Map;
+import java.util.Set;
+
 public class CommonDataServiceImpl implements CommonDataService {
 
     private CommonDataProvider commonDataProvider;
-    private WebClientProperties webClientProperties;
-
-    public void setWebClientProperties(WebClientProperties webClientProperties) {
-        this.webClientProperties = webClientProperties;
-        checkIfUserCommentAvailable();
-        checkIfTagsAvailable();
-    }
 
     @Override
     public WebClientProperties getWebClientProperties() {
-        return webClientProperties;
+        return commonDataProvider.getWebClientProperties();
     }
 
-    private void checkIfUserCommentAvailable() {
-        webClientProperties.setUserCommentStoreAvailable(commonDataProvider.checkIfUserCommentStorageAvailable());
-    }
-
-    private void checkIfTagsAvailable() {
-        webClientProperties.setTagsStoreAvailable(commonDataProvider.checkIfTagsStorageAvailable());
+    @Override
+    public Map<String,Set<String>> getDefaultMonitoringParameters() {
+        return commonDataProvider.getDefaultMonitoringParameters();
     }
 
     public CommonDataProvider getCommonDataProvider() {
