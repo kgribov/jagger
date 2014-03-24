@@ -181,6 +181,8 @@ public abstract class BufferedLogWriter implements LogWriter {
 
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
+                    } catch (Exception e){
+                        log.error(e.getMessage(), e);
                     } finally {
                         try {
                             Closeables.closeQuietly(objectOutput);
