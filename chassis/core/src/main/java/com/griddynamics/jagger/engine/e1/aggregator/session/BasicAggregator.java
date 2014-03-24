@@ -140,6 +140,9 @@ public class BasicAggregator extends HibernateDaoSupport implements Distribution
     }
 
     private void persistData(String sessionId, String taskId, Task task) {
+        if (task instanceof MonitoringTask){
+            return;
+        }
         TaskData taskData = new TaskData();
         taskData.setTaskId(taskId);
         taskData.setSessionId(sessionId);
