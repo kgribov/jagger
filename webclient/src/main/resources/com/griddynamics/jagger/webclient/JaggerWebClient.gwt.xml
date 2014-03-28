@@ -13,6 +13,7 @@
     <inherits name="com.sencha.gxt.ui.GXT"/>
     <inherits name="com.google.gwt.i18n.I18N"/>
 
+    <inherits name="com.griddynamics.jagger.util" />
 
     <set-property name="gflot.load.flot.text" value="ENABLED" />
     <set-property name="gflot.load.canvas2image" value="ENABLED" />

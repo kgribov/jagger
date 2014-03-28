@@ -23,13 +23,20 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
-/**
+/** Calculates standard deviation on interval
  * @author Nikolay Musienko
- *         Date: 24.07.13
- */
-
+ * @n
+ * @par Details:
+ * @details
+ * @n
+ * @par Usage example:
+ * To use this aggregator add @xlink_complex{metric-aggregator-std} to @xlink_complex{metric-custom} block. @n
+ * More examples you can find in: @ref AvgMetricAggregatorProvider @n
+ *
+ * @ingroup Main_Aggregators_group */
 public class StdDevMetricAggregatorProvider implements MetricAggregatorProvider {
 
+    /** Method is called to provide instance of private class: \b StdDevMetricAggregator that implements @ref MetricAggregator<C extends Number> and calculates standard deviation on interval */
     @Override
     public MetricAggregator provide() {
         return new StdDevMetricAggregator();

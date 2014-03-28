@@ -20,14 +20,29 @@
 
 package com.griddynamics.jagger.engine.e1.collector;
 
-/**
+/** Calculates average value on interval
  * @author Nikolay Musienko
- *         Date: 17.07.13
- */
-
-
+ * @n
+ * @par Details:
+ * @details
+ * @n
+ * @par Usage example in XML:
+ * To use this aggregator add @xlink_complex{metric-aggregator-avg} to @xlink_complex{metric-custom} block.
+ * @n
+ * @dontinclude  tasks-new.conf.xml
+ * @skip  begin: following section is used for docu generation - metric-success-rate
+ * @until end: following section is used for docu generation - metric-success-rate
+ * @n
+ * @par Usage example in code:
+ * @dontinclude  ProviderOfTestListener.java
+ * @skip  begin: following section is used for docu generation - example of metric creation
+ * @until end: following section is used for docu generation - example of metric creation
+ * @n
+ *
+ * @ingroup Main_Aggregators_group */
 public class AvgMetricAggregatorProvider  implements MetricAggregatorProvider {
 
+    /** Method is called to provide instance of private class: \b AvgMetricAggregator that implements @ref MetricAggregator<C extends Number> and provides averaging */
     @Override
     public MetricAggregator provide() {
         return new AvgMetricAggregator();

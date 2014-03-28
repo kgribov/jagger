@@ -14,7 +14,7 @@ import java.util.List;
  * Time: 4:42 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ValidateInvocationListener<Q, R, E> implements InvocationListener<Q, R, E> {
+public class ValidateInvocationListener<Q, R, E> extends InvocationListener<Q, R, E> {
     private Iterable<Validator> validators;
     private LoadInvocationListener<Q, R, E> metrics;
     private InvocationListener<Q, R, E> listener;

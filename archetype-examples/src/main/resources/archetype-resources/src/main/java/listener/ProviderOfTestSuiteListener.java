@@ -6,7 +6,6 @@ package ${package}.listener;
 
 import com.griddynamics.jagger.coordinator.NodeId;
 import com.griddynamics.jagger.engine.e1.Provider;
-import com.griddynamics.jagger.engine.e1.collector.MetricDescription;
 import com.griddynamics.jagger.engine.e1.collector.testsuite.TestSuiteInfo;
 import com.griddynamics.jagger.engine.e1.collector.testsuite.TestSuiteListener;
 import com.griddynamics.jagger.engine.e1.services.ServicesAware;
@@ -52,6 +51,8 @@ public class ProviderOfTestSuiteListener extends ServicesAware implements Provid
             // Method will be executed before starting of test suite
             @Override
             public void onStart(TestSuiteInfo testSuiteInfo) {
+                /* begin: following section is used for docu generation - work with session comments */
+
                 // Here you can f.e.:
                 // - provide smoke tests to check if your SUT is responding
                 // - check system properties required for correct SUT functionality
@@ -64,12 +65,24 @@ public class ProviderOfTestSuiteListener extends ServicesAware implements Provid
                 }
 
                 getSessionInfoService().appendToComment(comment);
+
+                /* end: following section is used for docu generation - work with session comments */
             }
 
             // Method will be executed after finishing test suite
             @Override
             public void onStop(TestSuiteInfo testSuiteInfo) {
-                // We will take no actions in this example
+                /* begin: following section is used for docu generation - work with session tags */
+
+                // In this example we will create tags
+                getSessionInfoService().saveOrUpdateTag("SERVICE_NAME", "Tag to mark sessions, testing some particular service");
+                getSessionInfoService().saveOrUpdateTag("PASS", "Tag to mark sessions with pass results");
+                getSessionInfoService().saveOrUpdateTag("FAIL", "Tag to mark sessions with fail results"); 
+
+                // Mark session with some tag from source code
+                getSessionInfoService().markSessionWithTag("SERVICE_NAME");
+
+                /* end: following section is used for docu generation - work with session tags */
             }
         };
 

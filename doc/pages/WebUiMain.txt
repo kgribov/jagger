@@ -1,0 +1,9 @@
+/// @page WebUiMain Jagger WebUi
+/// @n
+/// Back to <a href="https://github.com/griddynamics/jagger/wiki/Jagger-webclient-summary">GitHub WebUI</a> documentation @n
+/// @n
+/// @li @ref WebUiOverview
+/// @li @ref WebUiInstallation
+/// @li @ref WebUiProperties
+/// @li @ref WebUiUserCommentsAndTags
+///

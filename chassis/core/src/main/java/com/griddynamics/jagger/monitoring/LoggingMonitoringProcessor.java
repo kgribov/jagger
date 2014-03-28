@@ -20,34 +20,101 @@
 
 package com.griddynamics.jagger.monitoring;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+import com.griddynamics.jagger.agent.model.MonitoringParameter;
 import com.griddynamics.jagger.agent.model.SystemInfo;
+import com.griddynamics.jagger.agent.model.SystemUnderTestInfo;
+import com.griddynamics.jagger.coordinator.NodeContext;
 import com.griddynamics.jagger.coordinator.NodeId;
-import com.griddynamics.jagger.storage.fs.logging.LogWriter;
-import com.griddynamics.jagger.storage.fs.logging.MonitoringLogEntry;
+import com.griddynamics.jagger.engine.e1.collector.AvgMetricAggregatorProvider;
+import com.griddynamics.jagger.engine.e1.collector.CumulativeMetricAggregatorProvider;
+import com.griddynamics.jagger.engine.e1.collector.MetricAggregatorProvider;
+import com.griddynamics.jagger.engine.e1.collector.MetricDescription;
+import com.griddynamics.jagger.engine.e1.services.DefaultMetricService;
+import com.griddynamics.jagger.engine.e1.services.MetricService;
+import com.griddynamics.jagger.util.MonitoringIdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Default implementation of {@link MonitoringProcessor}
  */
 public class LoggingMonitoringProcessor implements MonitoringProcessor {
     private Logger log = LoggerFactory.getLogger(LoggingMonitoringProcessor.class);
-    private LogWriter logWriter;
 
     public static final String MONITORING_MARKER = "MONITORING";
 
+    private Map<String, MetricService> metricServiceMap = new HashMap<String, MetricService>();
+    private Table<String, String, Boolean> createdMetrics = HashBasedTable.create();
+
     @Override
-    public void process(String sessionId, String taskId, NodeId agentId, SystemInfo systemInfo) {
-        logWriter.log(sessionId, taskId + File.separatorChar + MONITORING_MARKER,
-                agentId.getIdentifier(), new MonitoringLogEntry(systemInfo));
+    public void process(String sessionId, String taskId, NodeId agentId, NodeContext nodeContext, SystemInfo systemInfo) {
+        String serviceId = getKey(sessionId, taskId);
+        if (!metricServiceMap.containsKey(serviceId)){
+            metricServiceMap.put(serviceId, new DefaultMetricService(sessionId, taskId, nodeContext));
+        }
+
+        long timeStamp = systemInfo.getTime();
+
+        // save sigar metrics
+        saveMonitoringValues(serviceId, agentId.getIdentifier(), systemInfo.getSysInfo(), timeStamp);
+
+        // save jmx metrics
+        if (systemInfo.getSysUnderTest() != null){
+            for (Map.Entry<String, SystemUnderTestInfo> entry : systemInfo.getSysUnderTest().entrySet()){
+                saveMonitoringValues(serviceId, entry.getKey(), entry.getValue().getSysUTInfo(), timeStamp);
+            }
+        }
+
         log.trace("System info {} received from agent {} and has been written to FileStorage", systemInfo, agentId);
     }
 
-    @Required
-    public void setLogWriter(LogWriter logWriter) {
-        this.logWriter = logWriter;
+    private void saveMonitoringValues(String serviceId, String agentId, Map<MonitoringParameter, Double> values, long time){
+        if (values == null){
+            return;
+        }
+
+        MetricService service = metricServiceMap.get(serviceId);
+
+        for (Map.Entry<MonitoringParameter, Double> entry : values.entrySet()){
+            MonitoringParameter monitoringParameter = entry.getKey();
+            Double value = entry.getValue();
+
+            // save value
+            String metricId = getMetricId(serviceId, monitoringParameter, agentId);
+            service.saveValue(metricId, value, time);
+        }
+    }
+
+    // return metric id for current monitoring parameter
+    private String getMetricId(String serviceId, MonitoringParameter monitoringParameter, String agentId){
+        String metricId = MonitoringIdUtils.getMonitoringMetricId(monitoringParameter.getId(), agentId);
+
+        // register metric aggregators
+        if (!createdMetrics.contains(serviceId, metricId)){
+            MetricAggregatorProvider aggregator;
+            if (!monitoringParameter.isCumulativeCounter()){
+                aggregator = new AvgMetricAggregatorProvider();
+            }else{
+                aggregator = new CumulativeMetricAggregatorProvider();
+            }
+
+            metricServiceMap.get(serviceId).createMetric(new MetricDescription(metricId)
+                                                                .displayName(monitoringParameter.getDescription())
+                                                                .showSummary(false)
+                                                                .plotData(true).addAggregator(aggregator));
+
+            createdMetrics.put(serviceId, metricId, true);
+        }
+
+        return metricId;
+    }
+
+    private String getKey(String sessionId, String taskId){
+        return sessionId+taskId;
     }
 }

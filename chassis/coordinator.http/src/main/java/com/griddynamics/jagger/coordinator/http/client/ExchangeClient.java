@@ -100,7 +100,7 @@ public class ExchangeClient {
             }
             Pack in = packResponse.getPack();
             packExchanger.process(in);
-        } catch (SocketException e) {
+        } catch (IOException e) {
             if (!out.isEmpty()){
                 packExchanger.getCommandsToSend().addAll(out.getCommands());
                 packExchanger.getResultsToSend().addAll(out.getResults());

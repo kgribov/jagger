@@ -186,7 +186,6 @@ public class WorkloadProcess implements NodeProcess<WorkloadStatus> {
         for (KernelSideObjectProvider<ScenarioCollector<Object, Object, Object>> provider : command.getCollectors()) {
             collectors.add(provider.provide(sessionId, command.getTaskId(), context));
         }
-        collectors.add(createFlushCollector(sessionId, command.getTaskId(), context));
 
         List<Validator> validators = Lists.newLinkedList();
         for (KernelSideObjectProvider<Validator> provider : command.getValidators()){
@@ -227,31 +226,5 @@ public class WorkloadProcess implements NodeProcess<WorkloadStatus> {
         for (Future<Service.State> future : futures){
             Futures.get(future, timeoutsConfiguration.getWorkloadStopTimeout());
         }
-    }
-
-    // need to flush all records in LogWriter
-    private ScenarioCollector createFlushCollector(String sessionId, String taskId, final NodeContext nodeContext){
-        return new ScenarioCollector(sessionId, taskId, nodeContext) {
-            @Override
-            public void flush() {
-                nodeContext.getService(LogWriter.class).flush();
-            }
-
-            @Override
-            public void onStart(Object query, Object endpoint) {
-            }
-
-            @Override
-            public void onSuccess(Object query, Object endpoint, Object result, long duration) {
-            }
-
-            @Override
-            public void onFail(Object query, Object endpoint, InvocationException e) {
-            }
-
-            @Override
-            public void onError(Object query, Object endpoint, Throwable error) {
-            }
-        };
     }
 }

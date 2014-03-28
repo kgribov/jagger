@@ -35,8 +35,10 @@
 
     <bean id="sin" class="metric.SinMetric"/>
 
-    <bean id="maxAggregator" class="metric.aggregator.MaxAggregator"/>
+    <!--begin: following section is used for docu generation - custom aggregator-->
+    <bean id="maxAggregator" class="metric.aggregator.MaxMetricAggregatorProvider"/>
+    <!--end: following section is used for docu generation - custom aggregator-->
 
-    <bean id="minAggregator" class="metric.aggregator.MinAggregator"/>
+    <bean id="minAggregator" class="metric.aggregator.MinMetricAggregatorProvider"/>
 
 </beans>

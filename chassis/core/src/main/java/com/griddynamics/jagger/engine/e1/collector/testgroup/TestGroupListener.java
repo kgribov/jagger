@@ -12,19 +12,21 @@ import java.util.List;
  * @details
  * @n
  * @ingroup Main_Listeners_Base_group */
-public interface TestGroupListener {
+public abstract class TestGroupListener {
 
     /** Executes before test-group starts
      * @param infoStart - describes test-group start information */
-    void onStart(TestGroupInfo infoStart);
+    public void onStart(TestGroupInfo infoStart){
+    }
 
     /** Executes after test-group stops
      * @param infoStop - describes test-group stop information */
-    void onStop(TestGroupInfo infoStop);
+    public void onStop(TestGroupInfo infoStop){
+    }
 
     /** Class is used by Jagger for sequential execution of several listeners @n
      *  Not required for custom test listeners */
-    public static class Composer implements TestGroupListener{
+    public static class Composer extends TestGroupListener{
         private static Logger log = LoggerFactory.getLogger(Composer.class);
 
         private List<TestGroupListener> listenerList;

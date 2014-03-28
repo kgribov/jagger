@@ -161,7 +161,7 @@ public abstract class ResponseValidator<Q, E, R> extends KernelSideObject {
 ///
 /// <li> If your validator doesn't have any properties, create @xlink{validator-custom} collector in @xlink{test-description,info-collectors} block in @xlink{test-description}. @n
 /// Set the name of validator class to attribute @xlink{validator-custom,validator}.
-/// @dontinclude  test.suite.scenario.config.xml
+/// @dontinclude  test.description.conf.xml
 /// @skip  begin: following section is used for docu generation - validator-custom
 /// @until end: following section is used for docu generation - validator-custom
 /// </ol>

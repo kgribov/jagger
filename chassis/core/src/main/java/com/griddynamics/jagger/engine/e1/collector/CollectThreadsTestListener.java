@@ -16,7 +16,7 @@ import com.griddynamics.jagger.engine.e1.services.ServicesAware;
  * @par Usage example in XML:
  * To use this listener add @xlink_complex{listeners-test} of type @xlink_complex{listener-test-threads} to @xlink{test} block in your configuration XML file
  * @n
- * @dontinclude  test.suite.conf.xml
+ * @dontinclude  suite.conf.xml
  * @skip  begin: following section is used for docu generation - test listener usage
  * @until end: following section is used for docu generation - test listener usage
  * @n

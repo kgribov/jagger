@@ -6,6 +6,8 @@ package ${package}.validator;
 import com.griddynamics.jagger.coordinator.NodeContext;
 import com.griddynamics.jagger.engine.e1.collector.ResponseValidator;
 import com.griddynamics.jagger.exception.TechnicalException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +22,8 @@ import java.util.Scanner;
  * @param <R> - Result type
  */
 public class ResponseFromFileValidator<Q, E, R> extends ResponseValidator<Q, E, R> {
+
+    private static final Logger log = LoggerFactory.getLogger(ResponseFromFileValidator.class);
 
     private String filePath= "suite/validator/resources/response.txt";
     private String expectedResponse;
@@ -69,7 +73,13 @@ public class ResponseFromFileValidator<Q, E, R> extends ResponseValidator<Q, E, 
                 }
             }
         }
-        return expectedResponse.equals(result);
+        if (expectedResponse.equals(result)) {
+            return true;
+        }
+        else {
+            log.warn("Validator {} failed",getName());
+            return false;
+        }
     }
 }
 /* end: following section is used for docu generation - validator-custom source */

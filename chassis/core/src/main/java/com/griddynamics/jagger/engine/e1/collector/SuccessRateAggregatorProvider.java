@@ -14,7 +14,7 @@ package com.griddynamics.jagger.engine.e1.collector;
  * @ingroup Main_Aggregators_group */
 public class SuccessRateAggregatorProvider implements MetricAggregatorProvider {
 
-    /** Method is called to provide instance of private class: \b SuccessRateAggregator that implements @ref MetricAggregator and provides necessary calculations */
+    /** Method is called to provide instance of private class: \b SuccessRateAggregator that implements @ref MetricAggregator<C extends Number> and provides necessary calculations */
     @Override
     public MetricAggregator provide()
     {

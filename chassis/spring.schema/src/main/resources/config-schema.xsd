@@ -558,6 +558,14 @@
     <xsd:complexType name="load-user-groups">
         <xsd:annotation><xsd:documentation>
             This load is a list of elements user. Every such element imitates a group of threads.
+            Threads will start sequentially.
+            Thus you are able to create load ramp-up and rump-down with this load type.
+            You can configure a number of threads by attributes :
+            count is a goal number of threads,
+            startIn is a delay (milliseconds) before first thread will start,
+            startBy - interval (milliseconds) between starting new thread(s),
+            startCount describes how many threads to start during every iteration,
+            life describes how long threads will be alive (string of type "1m" or "1h", etc).
         </xsd:documentation></xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="loadAbstract">
@@ -570,12 +578,14 @@
 
     <xsd:complexType name="userGroupIn">
         <xsd:annotation><xsd:documentation>
-            This element imitates a group of threads. You can configure a number of threads by attributes.
-            count is a max number of threads, that you can use.
-            startCount is a start number of threads.
-            startIn is a time duration between increase of threads.
-            startBy is a number on how much to increase number of threads.
-            life describes how long threads will be alive.
+            Every such element imitates a group of threads. Threads will start sequentially.
+            Thus you are able to create load ramp-up and rump-down with this load type.
+            You can configure a number of threads by attributes :
+            count is a goal number of threads,
+            startIn is a delay (milliseconds) before first thread will start,
+            startBy - interval (milliseconds) between starting new thread(s),
+            startCount describes how many threads to start during every iteration,
+            life describes how long threads will be alive (string of type "1m" or "1h", etc).
         </xsd:documentation></xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="loadAbstract">
@@ -912,6 +922,7 @@
 
     <xsd:complexType name="metric-aggregator-ref">
         <xsd:annotation><xsd:documentation>
+            Reference to custom aggregator
         </xsd:documentation></xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="metricAggregatorAbstract">
@@ -922,6 +933,7 @@
 
     <xsd:complexType name="metric-aggregator-avg">
         <xsd:annotation><xsd:documentation>
+            Average aggregator. Calculates average value on interval
         </xsd:documentation></xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="metricAggregatorAbstract">
@@ -931,6 +943,7 @@
 
     <xsd:complexType name="metric-aggregator-sum">
         <xsd:annotation><xsd:documentation>
+            Summary aggregator. Calculates summary of all values on interval
         </xsd:documentation></xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="metricAggregatorAbstract">
@@ -940,6 +953,7 @@
 
     <xsd:complexType name="metric-aggregator-std">
         <xsd:annotation><xsd:documentation>
+            Standard deviation aggregator. Calculates standard deviation on interval
         </xsd:documentation></xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="metricAggregatorAbstract">

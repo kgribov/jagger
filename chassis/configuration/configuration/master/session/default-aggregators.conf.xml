@@ -87,11 +87,11 @@
     </bean>
 
     <bean id="metricIntervalSizeProvider_count" class="com.griddynamics.jagger.reporting.interval.CalculatedIntervalSizeProvider" lazy-init="true">
-        <constructor-arg value="${chassis.engine.e1.reporting.task.monitoring.point.count}"/>
+        <constructor-arg value="${chassis.engine.e1.reporting.task.point.count}"/>
     </bean>
 
     <bean id="metricIntervalSizeProvider_interval" class="com.griddynamics.jagger.reporting.interval.FixedIntervalSizeProvider" lazy-init="true">
-        <constructor-arg value="${chassis.engine.e1.reporting.task.monitoring.point.interval}"/>
+        <constructor-arg value="${chassis.engine.e1.reporting.task.point.interval}"/>
     </bean>
 
     <bean id="metricLogProcessor" class="com.griddynamics.jagger.engine.e1.aggregator.workload.MetricLogProcessor">
@@ -109,18 +109,10 @@
         <property name="globalPercentilesKeys" ref="standardPercentilesGlobal"/>
     </bean>
 
-    <bean id="monitoringIntervalSizeProvider_count" class="com.griddynamics.jagger.reporting.interval.CalculatedIntervalSizeProvider" lazy-init="true">
-        <constructor-arg value="${chassis.engine.e1.reporting.task.monitoring.point.count}"/>
-    </bean>
-
-    <bean id="monitoringIntervalSizeProvider_interval" class="com.griddynamics.jagger.reporting.interval.FixedIntervalSizeProvider" lazy-init="true">
-        <constructor-arg value="${chassis.engine.e1.reporting.task.monitoring.point.interval}"/>
-    </bean>
-
     <bean id="monitoringAggregator" class="com.griddynamics.jagger.monitoring.MonitoringAggregator">
         <property name="sessionFactory" ref="sessionFactory"/>
         <property name="fileStorage" ref="fileStorage"/>
-        <property name="intervalSizeProvider" ref="monitoringIntervalSizeProvider_${chassis.engine.e1.reporting.task.monitoring.type}"/>
+        <property name="intervalSizeProvider" ref="metricIntervalSizeProvider_${chassis.engine.e1.reporting.task.type}"/>
 
         <property name="logReader"  ref="bufferedLogReader"/>
 

@@ -23,7 +23,7 @@ public interface JaggerService {
 }
 
 /* **************** Jagger services page ************************* */
-/// @defgroup Main_Services_General_group Jagger services main page
+/// @defgroup Main_Services_General_group Services main page
 ///
 /// @li General information about interfaces: @ref Main_Services_Base_group
 /// @li Available implementations: @ref Main_Services_group

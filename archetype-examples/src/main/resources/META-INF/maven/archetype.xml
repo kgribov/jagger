@@ -17,6 +17,7 @@
         <source>src/main/java/provider/ProviderOfExampleSuccessRateCollector.java</source>
         <source>src/main/java/listener/ProviderOfTestListener.java</source>
         <source>src/main/java/listener/ProviderOfTestSuiteListener.java</source>
+        <source>src/main/java/listener/ProviderOfInvocationListener.java</source>
     </sources>
     <resources>
         <resource>src/main/resources/profiles/basic/environment.properties</resource>
@@ -33,8 +34,8 @@
         <resource>src/main/resources/suite/collectors.conf.xml</resource>
         <resource>src/main/resources/suite/listeners.conf.xml</resource>
         <resource>src/main/resources/suite/defaults.config.xml</resource>
-        <resource>src/main/resources/suite/test.suite.conf.xml</resource>
-        <resource>src/main/resources/suite/test.suite.scenario.config.xml</resource>
+        <resource>src/main/resources/suite/suite.conf.xml</resource>
+        <resource>src/main/resources/suite/test.description.conf.xml</resource>
         <resource>assembly-config.xml</resource>
     </resources>
 

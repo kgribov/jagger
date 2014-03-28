@@ -1,6 +1,5 @@
 package com.griddynamics.jagger.webclient.client.dto;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -10,58 +9,57 @@ import java.util.Set;
  * Time: 17:39
  * To change this template use File | Settings | File Templates.
  */
-public class MetricNameDto implements Serializable {
+public class MetricNameDto extends MetricName {
 
-    private TaskDataDto tests;
-    private String name;
-    private String displayName;
+    // Describes origin of this metric - location in DB where data for this metric ca be taken from
+    // Will be used when fetching data from DB to select correct provider of data
+    private Origin origin = Origin.UNKNOWN;
+    private TaskDataDto test;
 
-    public MetricNameDto() {
+    public MetricNameDto(){}
+
+    public MetricNameDto(TaskDataDto test, String metricName) {
+        super(metricName);
+        this.test = test;
     }
 
-    public MetricNameDto(TaskDataDto tests, String name) {
-        this.tests = tests;
-        this.name = name;
+    public MetricNameDto(TaskDataDto test, String metricName, String metricDisplayName) {
+        super(metricName,metricDisplayName);
+        this.test = test;
     }
 
-    public long getTaskId() {
-        if (tests.getIds() == null || tests.getIds().size() != 1) {
-            throw new UnsupportedOperationException("Cannot return id because of ids is null or its size is not equal 1");
-        }
-        return tests.getIds().iterator().next();
+    public MetricNameDto(TaskDataDto test, String metricName, String metricDisplayName, Origin origin) {
+        super(metricName,metricDisplayName);
+        this.test = test;
+        this.origin = origin;
     }
 
     public Set<Long> getTaskIds() {
-        return tests.getIds();
+        return test.getIds();
     }
 
-
-    public String getName() {
-        return name;
+    public TaskDataDto getTest() {
+        return test;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTest(TaskDataDto test) {
+        this.test = test;
     }
 
-    public TaskDataDto getTests() {
-        return tests;
+    public Origin getOrigin() {
+        return origin;
     }
 
-    public void setTests(TaskDataDto tests) {
-        this.tests = tests;
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getDisplay() {
-        return displayName == null ? name : displayName;
+    @Override
+    public String toString() {
+        return "MetricNameDto{" +
+                (test != null ? "taskIds=" + test.getIds() : "") +
+                ", metricName='" + metricName + '\'' +
+                '}';
     }
 
     @Override
@@ -71,24 +69,29 @@ public class MetricNameDto implements Serializable {
 
         MetricNameDto that = (MetricNameDto) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (tests != null ? !tests.equals(that.tests) : that.tests != null) return false;
+        if (metricName != null ? !metricName.equals(that.metricName) : that.metricName != null) return false;
+        if (test != null ? !test.equals(that.test) : that.test != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = tests != null ? tests.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        int result = test != null ? test.hashCode() : 0;
+        result = 31 * result + (metricName != null ? metricName.hashCode() : 0);
         return result;
     }
 
-    @Override
-    public String toString() {
-        return "MetricNameDto{" +
-                "tests=" + tests +
-                ", name='" + name + '\'' +
-                '}';
+    public static enum Origin {
+        UNKNOWN,                      /* default value - will produce errors during fetching */
+        METRIC,                       /* custom metric */
+        TEST_GROUP_METRIC,            /* custom test-group metric */
+        LATENCY,
+        THROUGHPUT,
+        LATENCY_PERCENTILE,
+        DURATION,
+        STANDARD_METRICS,             /* success rate, iterations, etc */
+        MONITORING,                    /* monitoring parameters saved in separate DB table */
+        VALIDATOR
     }
 }

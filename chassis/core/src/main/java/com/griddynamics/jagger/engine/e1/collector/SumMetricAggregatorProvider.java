@@ -23,13 +23,20 @@ package com.griddynamics.jagger.engine.e1.collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/** Calculates summary of all values on interval
  * @author Nikolay Musienko
- *         Date: 17.07.13
- */
-
+ * @n
+ * @par Details:
+ * @details
+ * @n
+ * @par Usage example:
+ * To use this aggregator add @xlink_complex{metric-aggregator-sum} to @xlink_complex{metric-custom} block. @n
+ * More examples you can find in: @ref AvgMetricAggregatorProvider @n
+ *
+ * @ingroup Main_Aggregators_group */
 public class SumMetricAggregatorProvider implements MetricAggregatorProvider {
 
+    /** Method is called to provide instance of private class: \b SumMetricAggregator that implements @ref MetricAggregator<C extends Number> and calculates summary of all values on interval */
     @Override
     public MetricAggregator provide() {
         return new SumMetricAggregator();

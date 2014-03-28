@@ -6,8 +6,12 @@ import com.griddynamics.jagger.storage.KeyValueStorage;
 import com.griddynamics.jagger.storage.Namespace;
 import com.griddynamics.jagger.storage.fs.logging.LogWriter;
 import com.griddynamics.jagger.storage.fs.logging.MetricLogEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,6 +21,9 @@ import java.io.File;
  * To change this template use File | Settings | File Templates.
  */
 public class DefaultMetricService implements MetricService {
+    private static final Logger log = LoggerFactory.getLogger(DefaultMetricService.class);
+
+
     public static final String METRIC_MARKER = "METRIC";
 
     protected String sessionId;
@@ -48,8 +55,13 @@ public class DefaultMetricService implements MetricService {
     @Override
     public void saveValue(String metricId, Number value, long timeStamp) {
         LogWriter logWriter = context.getService(LogWriter.class);
-        logWriter.log(sessionId, taskId + File.separatorChar + METRIC_MARKER + File.separatorChar + metricId, context.getId().getIdentifier(),
-                new MetricLogEntry(timeStamp, metricId, value));
+        try {
+            metricId = URLEncoder.encode(metricId, "UTF-8");
+            logWriter.log(sessionId, taskId + File.separatorChar + METRIC_MARKER + File.separatorChar + metricId, context.getId().getIdentifier(),
+                    new MetricLogEntry(timeStamp, metricId, value));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Can't save metric value with id={}", metricId, e);
+        }
     }
 
     @Override

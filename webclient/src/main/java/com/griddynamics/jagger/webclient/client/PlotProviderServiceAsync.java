@@ -1,7 +1,7 @@
 package com.griddynamics.jagger.webclient.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.griddynamics.jagger.webclient.client.dto.PlotNameDto;
+import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
 import com.griddynamics.jagger.webclient.client.dto.PlotSeriesDto;
 import com.griddynamics.jagger.webclient.client.dto.SessionPlotNameDto;
 
@@ -18,9 +18,5 @@ public interface PlotProviderServiceAsync {
 
     void getSessionScopePlotData(String sessionId, Collection<SessionPlotNameDto> plotType, AsyncCallback<Map<SessionPlotNameDto, List<PlotSeriesDto>>> async);
 
-    void getPlotDatas(Set<PlotNameDto> plots, AsyncCallback<Map<PlotNameDto,List<PlotSeriesDto>>> async);
-
-    void getPlotData(Set<Long> taskId, PlotNameDto plotType, AsyncCallback<List<PlotSeriesDto>> async);
-
-    void getPlotData(long taskId, PlotNameDto plotType, AsyncCallback<List<PlotSeriesDto>> async);
+    void getPlotData(Set<MetricNode> plots, AsyncCallback<Map<MetricNode,PlotSeriesDto>> async);
 }

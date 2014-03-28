@@ -187,7 +187,7 @@ public class CsvProvider<T> implements Iterable<T>, Serializable  {
 /// In current example endpoints are hardcoded and list of queries is empty. @n
 /// In real life it is more complicated. Endpoints and queries are usually provided as CVS files, property files or as some SUT test service @n
 /// In this case you need to implement custom provider(s). How to do this you can read here: @ref Main_HowToCustomizeProviders_group
-/// @dontinclude  test.suite.scenario.config.xml
+/// @dontinclude  test.description.conf.xml
 /// @skip  begin: following section is used for docu generation - simple providers usage
 /// @until end: following section is used for docu generation - simple providers usage
 ///
@@ -220,7 +220,7 @@ public class CsvProvider<T> implements Iterable<T>, Serializable  {
 /// @n
 ///
 /// 3. Create component @xlink{query-provider}(or @xlink{endpoint-provider}) with type query-provider-ref and set id of provider to attribute ref.
-/// @dontinclude  test.suite.scenario.config.xml
+/// @dontinclude  test.description.conf.xml
 /// @skip  begin: following section is used for docu generation - provider custom
 /// @until end: following section is used for docu generation - provider custom
 /// @n

@@ -16,7 +16,8 @@
                     <g:SimplePanel ui:field="controlTreePanel" height="100%" width="100%"/>
                 </g:center>
                 <g:south size="250" >
-                    <gxt:ContentPanel ui:field="sessionDataGridContainer" headerVisible="false" height="250" bodyBorder="false" borders="false">
+                    <gxt:ContentPanel ui:field="sessionDataGridContainer" headerVisible="false" height="250"
+                                      bodyBorder="false" borders="false">
                         <g:DockLayoutPanel>
                             <g:north size="34">
                                 <g:FlowPanel addStyleNames="{res.css.toolBar}">
@@ -28,37 +29,48 @@
                             </g:north>
 
                             <g:center>
-                                <c:DataGrid addStyleNames="{res.css.toolBar}" ui:field="sessionsDataGrid" width="100%" title="Sessions" />
+                                <c:DataGrid addStyleNames="{res.css.toolBar}" ui:field="sessionsDataGrid" width="100%"
+                                            title="Sessions"/>
                             </g:center>
 
-                            <g:south size="90">
-                                <g:HTMLPanel addStyleNames="{res.css.toolBar}">
+
+                            <g:south size="55">
+                                <g:TabLayoutPanel barHeight="1.5" barUnit="EM"
+                                                  ui:field="searchTabPanel" addStyleNames="{res.css.searchTabPanel}" >
+
+                                    <g:tab>
+                                        <g:header>
+                                            <b>Session number</b>
+                                        </g:header>
+                                        <g:HorizontalPanel addStyleNames="{res.css.searchPanel}"
+                                                           ui:field="idsPanel" borderWidth="0"/>
+                                    </g:tab>
+
+                                    <g:tab>
+                                        <g:header>
+                                            <b>Tags</b>
+                                        </g:header>
+                                        <g:HorizontalPanel addStyleNames="{res.css.searchPanel}"
+                                                           ui:field="tagsPanel" borderWidth="0"/>
+                                    </g:tab>
+
+                                    <g:tab>
+                                        <g:header>
+                                            <b>Date range</b>
+                                        </g:header>
+                                        <g:HorizontalPanel addStyleNames="{res.css.searchPanel}"
+                                                           ui:field="datesPanel" borderWidth="0"/>
+                                    </g:tab>
+                                </g:TabLayoutPanel>
+
+
+                            </g:south>
+                            <g:south size="34" >
+                                <g:HTMLPanel addStyleNames="{res.css.toolBar}" >
                                     <table width="100%">
                                         <tr>
                                             <td align="center">
                                                 <c:SimplePager ui:field="sessionsPager"/>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <table width="100%">
-                                                    <tr>
-                                                        <td style="white-space: nowrap; font: normal 11px arial, tahoma, helvetica, sans-serif; color: black">Select by Session Number:</td>
-                                                        <td colspan="3">
-                                                            <g:TextBox ui:field="sessionIdsTextBox" width="99%"/>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="white-space: nowrap; font: normal 11px arial, tahoma, helvetica, sans-serif; color: black">Select by Date Range</td>
-                                                        <td>
-                                                            <datepicker:DateBox ui:field="sessionsFrom" width="98%"/>
-                                                        </td>
-                                                        <td class="{res.css.centered}">-</td>
-                                                        <td style="text-align: right;">
-                                                            <datepicker:DateBox ui:field="sessionsTo" width="98%"/>
-                                                        </td>
-                                                    </tr>
-                                                </table>
                                             </td>
                                         </tr>
                                     </table>
@@ -72,25 +84,33 @@
         <g:center>
             <g:TabLayoutPanel barHeight="1.5" barUnit="EM" ui:field="mainTabPanel">
                 <g:tab>
-                    <g:header> <b>Summary</b> </g:header>
+                    <g:header>
+                        <b>Summary</b>
+                    </g:header>
                     <g:ScrollPanel>
                         <custom:SummaryPanel addStyleNames="{res.css.summaryPanel}" ui:field="summaryPanel"/>
                     </g:ScrollPanel>
                 </g:tab>
                 <g:tab>
-                    <g:header> <b>Trends</b> </g:header>
+                    <g:header>
+                        <b>Trends</b>
+                    </g:header>
                     <g:ScrollPanel ui:field="scrollPanelTrends">
                         <g:HTMLPanel addStyleNames="{res.css.plotPanel}" ui:field="plotTrendsPanel"/>
                     </g:ScrollPanel>
                 </g:tab>
                 <g:tab>
-                    <g:header> <b>Metrics</b> </g:header>
+                    <g:header>
+                        <b>Metrics</b>
+                    </g:header>
                     <g:ScrollPanel ui:field="scrollPanelMetrics">
                         <g:HTMLPanel addStyleNames="{res.css.plotPanel}" ui:field="plotPanel"/>
                     </g:ScrollPanel>
                 </g:tab>
                 <g:tab>
-                    <g:header> <b>Nodes</b> </g:header>
+                    <g:header>
+                        <b>Nodes</b>
+                    </g:header>
                     <g:ScrollPanel>
                         <custom:NodesPanel addStyleNames="{res.css.nodesPanel}" ui:field="nodesPanel"/>
                     </g:ScrollPanel>

@@ -1,9 +1,12 @@
 package com.griddynamics.jagger.webclient.client.handler;
 
+import com.griddynamics.jagger.webclient.client.components.control.model.MetricNode;
 import com.griddynamics.jagger.webclient.client.components.control.model.PlotNode;
-import com.griddynamics.jagger.webclient.client.dto.PlotNameDto;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.tree.Tree;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,11 +17,13 @@ public class PlotNodeHandler extends TreeAwareHandler<PlotNode> {
     @Override
     public void onCheckChange(CheckChangeEvent<PlotNode> event) {
 
-        PlotNameDto plotName = event.getItem().getPlotName();
+        Set<MetricNode> metricNodeSet = new HashSet<MetricNode>();
+        metricNodeSet.add(event.getItem());
+
         if (Tree.CheckState.CHECKED.equals(event.getChecked())) {
-            testPlotFetcher.fetchPlot(plotName, true);
+            testPlotFetcher.fetchPlots(metricNodeSet);
         } else {
-            testPlotFetcher.removePlot(plotName);
+            testPlotFetcher.removePlots(metricNodeSet);
         }
     }
 }

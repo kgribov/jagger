@@ -6,6 +6,7 @@ import com.griddynamics.jagger.engine.e1.aggregator.workload.model.WorkloadData;
 import com.griddynamics.jagger.monitoring.model.MonitoringStatistics;
 import com.griddynamics.jagger.monitoring.model.PerformedMonitoring;
 import com.griddynamics.jagger.monitoring.reporting.GroupKey;
+import com.griddynamics.jagger.util.MonitoringIdUtils;
 import com.griddynamics.jagger.webclient.client.dto.*;
 import com.griddynamics.jagger.webclient.server.ColorCodeGenerator;
 import com.griddynamics.jagger.webclient.server.DataProcessingUtil;
@@ -14,13 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import static com.griddynamics.jagger.webclient.client.mvp.NameTokens.*;
 
 /**
  * @author "Artem Kirillov" (akirillov@griddynamics.com)
@@ -61,21 +61,6 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
     //==========================
 
     /**
-     * Returns list of PlotSeriesDto for given task ID and plot name
-     *
-     * @param taskId   task ID
-     * @param plotName plot name
-     * @return list of PlotSeriesDto
-     * @see PlotSeriesDto
-     */
-    @Override
-    public List<PlotSeriesDto> getPlotData(long taskId, PlotNameDto plotName) {
-        Set<Long> taskIds = new HashSet<Long>();
-        taskIds.add(taskId);
-        return getPlotData(taskIds, plotName);
-    }
-
-    /**
      * Returns list of PlotSeriesDto for given session ID and plot name
      *
      * @param sessionId session ID
@@ -85,9 +70,17 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
      */
     @Override
     public List<PlotSeriesDto> getPlotData(String sessionId, String plotName) {
-
-        String monitoringKey = plotName.substring(0, plotName.indexOf(AGENT_NAME_SEPARATOR));
-        String agentIdentifier = plotName.substring(plotName.indexOf(AGENT_NAME_SEPARATOR) + AGENT_NAME_SEPARATOR.length());
+        String monitoringKey;
+        String agentIdentifier;
+        MonitoringIdUtils.MonitoringId monitoringId = MonitoringIdUtils.splitMonitoringMetricId(plotName);
+        if (monitoringId != null) {
+            monitoringKey = monitoringId.getMonitoringName();
+            agentIdentifier = monitoringId.getAgentName();
+        }
+        else {
+            log.error("Unable to split name '{}' to monitoringKey and agentIdentifier",plotName);
+            throw new RuntimeException("Unable to split name '" + plotName + "' to monitoringKey and agentIdentifier");
+        }
 
         List<WorkloadData> workloadDataList = findAllWorkloadDataBySessionId(sessionId);
         Map<String, WorkloadData> workloadDataMap = createIndexParentId2WorkloadData(workloadDataList);
@@ -154,18 +147,29 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
     }
 
     @Override
-    public List<PlotSeriesDto> getPlotData(Set<Long> taskIds, PlotNameDto plotName) {
+    public List<PlotSeriesDto> getPlotData(MetricNameDto metricNameDto) {
+        Set<Long> taskIds = metricNameDto.getTaskIds();
+
         checkNotNull(taskIds, "taskIds is null");
         checkArgument(!taskIds.isEmpty(), "taskIds is empty");
-        checkNotNull(plotName, "plotName is null");
+        checkNotNull(metricNameDto, "metricNameDto is null");
 
-        String metricId =  plotName.getPlotName();
-        String monitoringKey = metricId.substring(0, metricId.indexOf(AGENT_NAME_SEPARATOR));
-        String agentIdentifier = metricId.substring(metricId.indexOf(AGENT_NAME_SEPARATOR) + AGENT_NAME_SEPARATOR.length());
+        String monitoringKey;
+        String agentIdentifier;
+        String metricId =  metricNameDto.getMetricName();
+        MonitoringIdUtils.MonitoringId monitoringId = MonitoringIdUtils.splitMonitoringMetricId(metricId);
+        if (monitoringId != null) {
+            monitoringKey = monitoringId.getMonitoringName();
+            agentIdentifier = monitoringId.getAgentName();
+        }
+        else {
+            log.error("Unable to split name '{}' to monitoringKey and agentIdentifier",metricId);
+            throw new RuntimeException("Unable to split name '" + metricId + "' to monitoringKey and agentIdentifier");
+        }
 
         DefaultMonitoringParameters[] defaultMonitoringParametersGroup = findDefaultMonitoringParameters(monitoringPlotGroups, monitoringKey);
         List<String> monitoringParametersList = assembleDefaultMonitoringParametersDescriptions(defaultMonitoringParametersGroup);
-        log.debug("For plot {} there are exist {} monitoring parameters", plotName, defaultMonitoringParametersGroup);
+        log.debug("For plot {} there are exist {} monitoring parameters", metricNameDto, defaultMonitoringParametersGroup);
 
         Map<String, Map<String, List<MonitoringStatistics>>> finalComposedMap = new HashMap<String, Map<String, List<MonitoringStatistics>>>();
         for (long taskId : taskIds) {
@@ -174,24 +178,30 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
 
             WorkloadData workloadData = findWorkloadDataBySessionIdAndTaskId(workloadTaskData.getSessionId(), workloadTaskData.getTaskId());
 
-            TaskData monitoringTaskData = findMonitoringTaskDataBySessionIdAndParentId(workloadData.getSessionId(), workloadData.getParentId());
+            // metricNameDto can contain taskId for tasks without monitoring data available => ignore
+            try {
+                TaskData monitoringTaskData = findMonitoringTaskDataBySessionIdAndParentId(workloadData.getSessionId(), workloadData.getParentId());
 
-            // todo here we fetching all MonitoringStatistic entity with TaskData in it. may be it could be simplified.
-            List<MonitoringStatistics> monitoringStatisticsList = findAllMonitoringStatisticsByMonitoringTaskDataAndDescriptionInList(monitoringTaskData, monitoringParametersList, agentIdentifier);
+                // todo here we fetching all MonitoringStatistic entity with TaskData in it. may be it could be simplified.
+                List<MonitoringStatistics> monitoringStatisticsList = findAllMonitoringStatisticsByMonitoringTaskDataAndDescriptionInList(monitoringTaskData, monitoringParametersList, agentIdentifier);
 
-            Map<String, Map<String, List<MonitoringStatistics>>> composedMap = composeByBoxIdentifierAndDescription(monitoringStatisticsList, true);
+                Map<String, Map<String, List<MonitoringStatistics>>> composedMap = composeByBoxIdentifierAndDescription(monitoringStatisticsList, true);
 
-            for (Map.Entry<String, Map<String, List<MonitoringStatistics>>> boxEntry : composedMap.entrySet()) {
-                if (!finalComposedMap.containsKey(boxEntry.getKey())) {
-                    finalComposedMap.put(boxEntry.getKey(), new HashMap<String, List<MonitoringStatistics>>());
-                }
-
-                for (Map.Entry<String, List<MonitoringStatistics>> descrEntry : boxEntry.getValue().entrySet()) {
-                    if (!finalComposedMap.get(boxEntry.getKey()).containsKey(descrEntry.getKey())) {
-                        finalComposedMap.get(boxEntry.getKey()).put(descrEntry.getKey(), new ArrayList<MonitoringStatistics>());
+                for (Map.Entry<String, Map<String, List<MonitoringStatistics>>> boxEntry : composedMap.entrySet()) {
+                    if (!finalComposedMap.containsKey(boxEntry.getKey())) {
+                        finalComposedMap.put(boxEntry.getKey(), new HashMap<String, List<MonitoringStatistics>>());
                     }
-                    finalComposedMap.get(boxEntry.getKey()).get(descrEntry.getKey()).addAll(descrEntry.getValue());
+
+                    for (Map.Entry<String, List<MonitoringStatistics>> descrEntry : boxEntry.getValue().entrySet()) {
+                        if (!finalComposedMap.get(boxEntry.getKey()).containsKey(descrEntry.getKey())) {
+                            finalComposedMap.get(boxEntry.getKey()).put(descrEntry.getKey(), new ArrayList<MonitoringStatistics>());
+                        }
+                        finalComposedMap.get(boxEntry.getKey()).get(descrEntry.getKey()).addAll(descrEntry.getValue());
+                    }
                 }
+            }
+            catch (NoResultException ex) {
+                log.warn("Not able to fetch monitoring data for session id: " + workloadData.getSessionId() + " task id: " + taskId, ex);
             }
         }
 
@@ -253,8 +263,11 @@ public class MonitoringPlotDataProvider implements PlotDataProvider, SessionScop
 
     private DefaultMonitoringParameters[] findDefaultMonitoringParameters(Map<GroupKey, DefaultMonitoringParameters[]> monitoringPlotGroups, String plotName) {
         for (Map.Entry<GroupKey, DefaultMonitoringParameters[]> entry : monitoringPlotGroups.entrySet()) {
-            if (entry.getKey().getUpperName().equalsIgnoreCase(plotName)) {
-                return entry.getValue();
+            for (DefaultMonitoringParameters defaultMonitoringParameters : entry.getValue()) {
+                if (plotName.equals(defaultMonitoringParameters.getId())) {
+                    DefaultMonitoringParameters[] result = {defaultMonitoringParameters};
+                    return result;
+                }
             }
         }
 

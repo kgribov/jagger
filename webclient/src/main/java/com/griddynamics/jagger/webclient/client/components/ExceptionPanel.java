@@ -31,9 +31,14 @@ public class ExceptionPanel extends Dialog {
         HorizontalPanel hPanel = new HorizontalPanel();
         hPanel.add(new Image(AlertMessageBox.ICONS.error()));
 
-        String htmlBody = message.replace("\n", "<br>");
-        if (place != null) {
-            htmlBody += "<br><br><i>URL: " + place.getUrl() + "</i>";
+        String htmlBody;
+        if (message == null) {
+            htmlBody = "no message";
+        } else {
+            htmlBody = message.replace("\n", "<br>");
+            if (place != null) {
+                htmlBody += "<br><br><i>URL: " + place.getUrl() + "</i>";
+            }
         }
         hPanel.add(new HTML(htmlBody));
 

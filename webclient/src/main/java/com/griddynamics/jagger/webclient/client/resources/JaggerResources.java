@@ -84,6 +84,12 @@ public interface JaggerResources extends ClientBundle {
 
         String toolBar();
 
+        String searchPanel();
+
+        String tagButton();
+
+        String searchTabPanel();
+
         String sessionNameHeader();
 
         String testNameHeader();
@@ -93,5 +99,11 @@ public interface JaggerResources extends ClientBundle {
         String controlFont();
 
         String userCommentBox();
+
+        String descriptionPanel();
+
+        String abstractWindow();
+
+        String textAreaPanel();
     }
 }

@@ -88,7 +88,7 @@ public interface LoadBalancer<Q, E> extends Iterable<Pair<Q, E>>, Serializable {
 ///
 /// @par Example of distributor setup in XML:
 /// Following XML code should be included in @xlink{test-description} section @n
-/// @dontinclude  test.suite.scenario.config.xml
+/// @dontinclude  test.description.conf.xml
 /// @skip  begin: following section is used for docu generation - invoker usage
 /// @until end: following section is used for docu generation - invoker usage
 ///
@@ -125,7 +125,7 @@ public interface LoadBalancer<Q, E> extends Iterable<Pair<Q, E>>, Serializable {
 /// @n
 ///
 /// 3. Refer this class in your @xlink{scenario-query-pool} with element @xlink{query-distributor}
-/// @dontinclude  test.suite.scenario.config.xml
+/// @dontinclude  test.description.conf.xml
 /// @skip  begin: following section is used for docu generation - distributor usage
 /// @until end: following section is used for docu generation - distributor usage
 ///

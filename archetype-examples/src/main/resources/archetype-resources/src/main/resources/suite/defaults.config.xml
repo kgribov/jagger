@@ -36,11 +36,10 @@
         >
     <beans:import resource="collectors.conf.xml"/>
 
-    <test-description id="default" version="1">
+    <test-description id="td_default" version="1">
         <!-- begin: following section is used for docu generation - metric calculator usage-->
         <info-collectors id="defaultCollectors">
             <validator xsi:type="validator-not-null-response"/>
-            <validator xsi:type="validator-consistency"/>
             <metric id="responseSize"  xsi:type="metric-custom" calculator="responseSize" plotData="true"/>
             <metric xsi:type="metric-ref" ref="successRateCollector" plotData="true"/>
         </info-collectors>

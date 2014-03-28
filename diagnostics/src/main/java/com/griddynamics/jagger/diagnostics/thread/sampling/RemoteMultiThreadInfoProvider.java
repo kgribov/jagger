@@ -84,6 +84,32 @@ public class RemoteMultiThreadInfoProvider implements ThreadInfoProvider {
         return result;
     }
 
+    public void init(){
+        try {
+            if (jmxServices != null) {
+                for (JMXConnector jmxConnector : connector.values()) {
+                    try {
+                        jmxConnector.close();
+                    } catch (IOException e) {
+                        log.error("Can't close old jmx connection {}", jmxConnector.getConnectionId(), e);
+                    }
+                }
+                connector.clear();
+                mbs.clear();
+            }
+
+            connector = AgentUtils.getJMXConnectors(AgentUtils.splitServices(jmxServices), "", urlFormat);
+            mbs = AgentUtils.getMBeanConnections(connector);
+
+        } catch (MalformedURLException e) {
+            log.error("MalformedURLException", e);
+            throw new TechnicalException(e);
+        } catch (IOException e) {
+            log.error("IOException", e);
+        }
+    }
+
+    @Required
     public void setUrlFormat(String urlFormat) {
         this.urlFormat = urlFormat;
     }
@@ -94,33 +120,6 @@ public class RemoteMultiThreadInfoProvider implements ThreadInfoProvider {
 
     @Required
     public void setJmxServices(String jmxServices) {
-
-        if (this.jmxServices != null && this.jmxServices.equals(jmxServices))
-            return; // nothing to do. no changes
-
-
-        try {
-            if (this.jmxServices != null) {
-                for (JMXConnector jmxConnector : connector.values()) {
-                    try {
-                        jmxConnector.close();
-                    } catch (IOException e) {
-                        log.error("Can't close old jmx connection {}", jmxConnector.getConnectionId(), e);
-                    }
-                }
-                this.connector.clear();
-                this.mbs.clear();
-            }
-            this.jmxServices = jmxServices;
-
-            connector = AgentUtils.getJMXConnectors(AgentUtils.splitServices(this.jmxServices), "", urlFormat);
-            mbs = AgentUtils.getMBeanConnections(connector);
-
-        } catch (MalformedURLException e) {
-            log.error("MalformedURLException", e);
-            throw new TechnicalException(e);
-        } catch (IOException e) {
-            log.error("IOException", e);
-        }
+        this.jmxServices = jmxServices;
     }
 }

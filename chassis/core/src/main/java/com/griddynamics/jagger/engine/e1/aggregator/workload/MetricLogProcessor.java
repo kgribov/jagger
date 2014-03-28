@@ -21,15 +21,17 @@ package com.griddynamics.jagger.engine.e1.aggregator.workload;
 
 import com.griddynamics.jagger.coordinator.NodeId;
 import com.griddynamics.jagger.engine.e1.aggregator.session.model.TaskData;
-import com.griddynamics.jagger.engine.e1.aggregator.workload.model.*;
-import com.griddynamics.jagger.reporting.interval.IntervalSizeProvider;
+import com.griddynamics.jagger.engine.e1.aggregator.workload.model.MetricDescriptionEntity;
+import com.griddynamics.jagger.engine.e1.aggregator.workload.model.MetricPointEntity;
+import com.griddynamics.jagger.engine.e1.aggregator.workload.model.MetricSummaryEntity;
 import com.griddynamics.jagger.engine.e1.collector.*;
 import com.griddynamics.jagger.engine.e1.scenario.WorkloadTask;
+import com.griddynamics.jagger.master.CompositeTask;
 import com.griddynamics.jagger.master.DistributionListener;
 import com.griddynamics.jagger.master.Master;
 import com.griddynamics.jagger.master.SessionIdProvider;
 import com.griddynamics.jagger.master.configuration.Task;
-import com.griddynamics.jagger.engine.e1.collector.MetricDescription;
+import com.griddynamics.jagger.reporting.interval.IntervalSizeProvider;
 import com.griddynamics.jagger.storage.FileStorage;
 import com.griddynamics.jagger.storage.KeyValueStorage;
 import com.griddynamics.jagger.storage.Namespace;
@@ -43,8 +45,12 @@ import org.springframework.orm.hibernate3.HibernateCallback;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Set;
 
 
 /**
@@ -109,7 +115,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
 
     @Override
     public void onTaskDistributionCompleted(String sessionId, String taskId, Task task) {
-        if (task instanceof WorkloadTask) {
+        if (task instanceof WorkloadTask || task instanceof CompositeTask) {
             processLog(sessionIdProvider.getSessionId(), taskId);
         }
     }
@@ -142,7 +148,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                     StatisticsGenerator statisticsGenerator = new StatisticsGenerator(file, aggregationInfo, intervalSize, taskData).generate();
                     final Collection<MetricPointEntity> statistics = statisticsGenerator.getStatistics();
 
-                    log.info("BEGIN: Save to data base " + metricPath);
+                    log.debug("BEGIN: Save to data base " + metricPath);
                     getHibernateTemplate().execute(new HibernateCallback<Void>() {
                         @Override
                         public Void doInHibernate(Session session) throws HibernateException, SQLException {
@@ -153,7 +159,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                             return null;
                         }
                     });
-                    log.info("END: Save to data base " + metricPath);
+                    log.debug("END: Save to data base " + metricPath);
                 } catch (Exception e) {
                     log.error("Error during processing metric by path: '{}'",metricPath);
                 }
@@ -186,6 +192,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
         public StatisticsGenerator generate() throws IOException {
             String tmp = path.substring(0, path.lastIndexOf(File.separatorChar));
             String metricName = tmp.substring(tmp.lastIndexOf(File.separatorChar) + 1);
+            metricName = URLDecoder.decode(metricName, "UTF-8");
 
             MetricDescription metricDescription = fetchDescription(metricName);
 
@@ -218,8 +225,9 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
 
                     MetricAggregator nameAggregator = overallMetricAggregator == null ? intervalAggregator : overallMetricAggregator;
 
-                    String aggregatorDisplayNameSuffix = nameAggregator.getName();
-                    String aggregatorIdSuffix = createIdFromDisplayName(aggregatorDisplayNameSuffix);
+                    String aggregatorName = nameAggregator.getName();
+                    String aggregatorIdSuffix = createIdFromName(aggregatorName);
+                    String aggregatorDisplayNameSuffix = createAggregatorDisplayNameSuffix(aggregatorName);
 
                     String displayName = (metricDescription.getDisplayName() == null ? metricDescription.getMetricId() :
                     metricDescription.getDisplayName()) + aggregatorDisplayNameSuffix;
@@ -228,7 +236,9 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                     MetricDescriptionEntity metricDescriptionEntity = persistMetricDescription(metricId, displayName);
 
                     long currentInterval = aggregationInfo.getMinTime() + intervalSize;
-                    long time = 0;
+                    long time = intervalSize;
+
+                    long extendedInterval = intervalSize;
 
                     try {
                         fileReader = logReader.read(path, MetricLogEntry.class);
@@ -242,16 +252,18 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                                         // we leave interval
                                         // we have some info in interval aggregator
                                         // we need to save it
-                                        statistics.add(new MetricPointEntity(time, aggregated.doubleValue(), metricDescriptionEntity));
+                                        statistics.add(new MetricPointEntity(time - extendedInterval / 2, aggregated.doubleValue(), metricDescriptionEntity));
                                         intervalAggregator.reset();
 
                                         // go for the next interval
+                                        extendedInterval = intervalSize;
                                         time += intervalSize;
                                         currentInterval += intervalSize;
                                     }else{
                                         // current interval is empty
                                         // we will extend it
                                         while (logEntry.getTime() > currentInterval){
+                                            extendedInterval += intervalSize;
                                             time += intervalSize;
                                             currentInterval += intervalSize;
                                         }
@@ -266,7 +278,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
                         if (metricDescription.getPlotData()) {
                             Number aggregated = intervalAggregator.getAggregated();
                             if (aggregated != null){
-                                statistics.add(new MetricPointEntity(time, aggregated.doubleValue(), metricDescriptionEntity));
+                                statistics.add(new MetricPointEntity(time - extendedInterval / 2, aggregated.doubleValue(), metricDescriptionEntity));
                                 intervalAggregator.reset();
                             }
                         }
@@ -312,22 +324,7 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
         }
 
         private void persistAggregatedMetricValue(Number value, MetricDescriptionEntity md) {
-
-            WorkloadData workloadData = getWorkloadData(taskData.getSessionId(), taskData.getTaskId());
-            if(workloadData == null) {
-                log.warn("WorkloadData is not collected for task: '{}' terminating write metric: '{}' with value: '{}'",
-                        new Object[] {taskData.getTaskId(), md.getMetricId(), value});
-                return;
-            }
-            MetricSummaryEntity entity = getMetricSummaryEntity(md);
-            if (entity != null) {
-                log.info("DiagnosticResultEntity with name: '{}', for task: '{}' is  already exists. " +
-                        "Skipping write (please, disable DiagnosticCollector for this metric)",
-                        md.getMetricId(), workloadData.getTaskId());
-                return;
-            }
-
-            entity = new MetricSummaryEntity();
+            MetricSummaryEntity entity = new MetricSummaryEntity();
             entity.setTotal(value.doubleValue());
             entity.setMetricDescription(md);
 
@@ -342,36 +339,19 @@ public class MetricLogProcessor extends LogProcessor implements DistributionList
         * @param name aggregator`s name
         * @return aggregator`s id
         */
-        private String createIdFromDisplayName(String name) {
+        private String createIdFromName(String name) {
             String regexp = "[\\;/\\?\\:@\\&=\\+\\$\\,]";
             return name.replaceAll(regexp, "");
         }
 
-        @SuppressWarnings("unchecked")
-        private MetricSummaryEntity getMetricSummaryEntity(final MetricDescriptionEntity md) {
-            return getHibernateTemplate().execute(new HibernateCallback<MetricSummaryEntity>() {
-                @Override
-                public MetricSummaryEntity doInHibernate(Session session) throws HibernateException, SQLException {
-                    return (MetricSummaryEntity) session
-                            .createQuery("select t from MetricSummaryEntity t where t.metricDescription=?")
-                            .setParameter(0, md)
-                            .uniqueResult();
-                }
-            });
+        /**
+         * Wrap aggregator name to make it more comfortable to read in pdf/webclient
+         * @param name aggregator`s name
+         * @return suffix for displayName of metric with given aggregator
+         */
+        private String createAggregatorDisplayNameSuffix(String name) {
+            return " [" + name + ']';
         }
-
-        @SuppressWarnings("unchecked")
-        private WorkloadData getWorkloadData(final String sessionId, final String taskId) {
-            return getHibernateTemplate().execute(new HibernateCallback<WorkloadData>() {
-                @Override
-                public WorkloadData doInHibernate(Session session) throws HibernateException, SQLException {
-                    return (WorkloadData) session
-                            .createQuery("select t from WorkloadData t where sessionId=? and taskId=?")
-                            .setParameter(0, sessionId)
-                            .setParameter(1, taskId)
-                            .uniqueResult();
-                }
-            });
-        }
+        
     }
 }
